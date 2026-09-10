@@ -548,14 +548,19 @@ body::before{content:'';position:fixed;inset:0;
 
   .dur-box.night { background:#1a1a2e; color:#a29bfe; border-color:#6c5ce7; }
   </style>
-<script src="./config.js"></script>
 <script>
 /* GitHub Pages adapter: keep the original google.script.run calls unchanged. */
 (function () {
   if (window.google && window.google.script && window.google.script.run) return;
-  var proxyUrl = window.HR_PROXY_URL || "/api/hr-proxy";
+  /* Keep the Apps Script endpoint inside this one HTML file.
+     Do not use the GitHub Pages fallback: it returns an HTML 404 page,
+     which is why the client reports "استجابة غير صالحة من الخادم". */
+  var proxyUrl = "https://script.google.com/macros/s/AKfycbxSEvTrINR0exv_e9RRksgGsv7c_imOIl546inlm8El9oieK_iSNfiJDv-EzkgjfBiH/exec";
   function invoke(method, args, state) {
-    fetch(proxyUrl, { method: "POST", headers: { "Content-Type": "application/json" }, credentials: "omit", body: JSON.stringify({ method: method, args: args }) })
+    /* text/plain is intentional: it keeps this POST a CORS "simple request",
+       so GitHub Pages does not send an OPTIONS preflight that Apps Script
+       cannot answer. The Apps Script endpoint still parses JSON normally. */
+    fetch(proxyUrl, { method: "POST", headers: { "Content-Type": "text/plain;charset=UTF-8" }, credentials: "omit", body: JSON.stringify({ action: "rpc", method: method, args: args }) })
       .then(function (response) { return response.text().then(function (text) {
         var payload; try { payload = text ? JSON.parse(text) : {}; } catch (_) { payload = { ok: false, error: "استجابة غير صالحة من الخادم" }; }
         if (!response.ok || payload.ok !== true) throw new Error(payload.error || payload.message || "تعذر تنفيذ الطلب");
