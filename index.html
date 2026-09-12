@@ -84,11 +84,106 @@ body{min-height:100vh;}
 .home-card i{font-size:38px;color:var(--p);}
 .home-card.loan i{color:var(--gold);}
 .home-card small{font-size:10px;color:var(--txt2);font-weight:600;}
-.loan-banner{background:linear-gradient(145deg,#7D6608,#D4AC0D,#F4D03F);border-radius:var(--r16);padding:20px;margin-bottom:14px;position:relative;overflow:hidden;color:#fff;}
-.loan-banner::after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.14);top:-80px;left:-45px;}
+.loan-banner{
+  background:
+    radial-gradient(circle at 82% 18%,rgba(255,255,255,.28) 0 2px,transparent 3px),
+    radial-gradient(circle at 15% 88%,rgba(255,255,255,.16) 0 3px,transparent 4px),
+    linear-gradient(135deg,#665000 0%,#A98100 30%,#D4AC0D 66%,#F5D45A 100%);
+  border:1px solid rgba(255,255,255,.42);
+  border-radius:24px;
+  padding:18px 20px 21px;
+  margin:0 0 16px;
+  min-height:148px;
+  position:relative;
+  overflow:hidden;
+  isolation:isolate;
+  color:#fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.55),
+    inset 0 -18px 28px rgba(91,66,0,.20),
+    0 8px 0 -3px #9B7900,
+    0 15px 0 -6px rgba(126,92,0,.38),
+    0 22px 30px rgba(126,92,0,.28);
+  transform:perspective(900px) rotateX(0deg) translateY(0);
+  transition:transform .28s ease,box-shadow .28s ease;
+}
+.loan-banner:hover{
+  transform:perspective(900px) rotateX(2deg) translateY(-3px);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.6),
+    inset 0 -18px 28px rgba(91,66,0,.20),
+    0 8px 0 -3px #9B7900,
+    0 15px 0 -6px rgba(126,92,0,.38),
+    0 27px 38px rgba(126,92,0,.34);
+}
+.loan-banner::before{
+  content:'';
+  position:absolute;
+  z-index:0;
+  width:170%;
+  height:70px;
+  right:-42%;
+  bottom:-28px;
+  background:rgba(255,255,255,.13);
+  border:1px solid rgba(255,255,255,.18);
+  transform:rotate(-9deg);
+  box-shadow:0 -10px 26px rgba(255,255,255,.08);
+}
+.loan-banner::after{
+  content:'';
+  position:absolute;
+  z-index:0;
+  width:190px;
+  height:190px;
+  border-radius:50%;
+  left:-75px;
+  top:-105px;
+  background:radial-gradient(circle at 62% 62%,rgba(255,255,255,.34),rgba(255,255,255,.06) 52%,transparent 70%);
+  border:1px solid rgba(255,255,255,.15);
+  box-shadow:inset -12px -16px 24px rgba(103,73,0,.12);
+}
 .loan-banner>*{position:relative;z-index:1;}
-.loan-banner h3{font-size:20px;font-weight:900;margin-bottom:4px;}
-.loan-banner p{font-size:12px;opacity:.9;line-height:1.8;}
+.loan-banner-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px;}
+.loan-badge{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:5px 10px;
+  border-radius:999px;
+  background:rgba(89,62,0,.28);
+  border:1px solid rgba(255,255,255,.24);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 4px 10px rgba(87,61,0,.14);
+  font-size:10px;
+  font-weight:800;
+  color:#FFF8D6;
+}
+.loan-badge i{font-size:9px;color:#FFF3A6;}
+.loan-coins{
+  width:45px;
+  height:45px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  border-radius:14px;
+  background:linear-gradient(145deg,#FFE98A,#D8A900);
+  color:#8A6500;
+  font-size:22px;
+  border:1px solid rgba(255,255,255,.7);
+  box-shadow:
+    inset 0 2px 3px rgba(255,255,255,.65),
+    inset 0 -5px 8px rgba(125,86,0,.22),
+    0 7px 0 -2px #A77E00,
+    0 12px 16px rgba(87,61,0,.25);
+  transform:rotate(8deg);
+}
+.loan-banner h3{font-size:22px;font-weight:900;line-height:1.25;margin-bottom:5px;text-shadow:0 2px 4px rgba(87,61,0,.24);}
+.loan-banner h3 i{font-size:19px;margin-left:6px;color:#FFF3A6;filter:drop-shadow(0 2px 2px rgba(86,60,0,.25));}
+.loan-banner p{font-size:12px;opacity:.96;line-height:1.8;color:#FFFBE8;text-shadow:0 1px 2px rgba(87,61,0,.2);}
+@media(max-width:360px){
+  .loan-banner{padding:16px 16px 19px;min-height:140px;}
+  .loan-banner h3{font-size:20px;}
+  .loan-coins{width:40px;height:40px;font-size:19px;}
+}
 .loan-info{display:flex;align-items:flex-start;gap:8px;background:var(--gold-l);border:1px solid #F8C471;border-radius:var(--r10);padding:11px 12px;margin-bottom:12px;font-size:12px;font-weight:700;color:#7D6608;line-height:1.7;}
 .loan-info i{margin-top:4px;flex-shrink:0;}
 .loan-target-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r16);padding:15px;box-shadow:var(--s1);margin-bottom:12px;}
@@ -707,6 +802,10 @@ body::before{content:'';position:fixed;inset:0;
 <!-- LOAN VIEW -->
 <div id="v_loan" style="display:none;" class="fade-up">
   <div class="loan-banner">
+    <div class="loan-banner-top">
+      <span class="loan-badge"><i class="fas fa-sparkles"></i> تمويل مرن</span>
+      <i class="fas fa-coins loan-coins"></i>
+    </div>
     <h3><i class="fas fa-hand-holding-usd"></i> طلب سلفة</h3>
     <p id="loan_period_text">جاري تحميل فترة فتح السلف...</p>
   </div>
