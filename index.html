@@ -321,6 +321,39 @@ body{min-height:100vh;}
   background:linear-gradient(110deg,#F8FCFF,#F3F1FF);
   box-shadow:inset 0 1px 0 #fff,0 4px 10px rgba(56,105,145,.06);
 }
+.loan-employee-list{display:grid;gap:11px;margin-bottom:14px;}
+.loan-employee-list-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:2px 2px 9px;color:#425270;font-size:12px;font-weight:900;}
+.loan-employee-list-head span{display:flex;align-items:center;gap:7px;}
+.loan-employee-list-head i{color:#2FC5ED;text-shadow:0 0 8px rgba(47,197,237,.45);}
+.loan-employee-count{background:#EEF5FF;color:#49658C;border:1px solid #D8E7FA;border-radius:999px;padding:3px 9px;font-size:10px;font-weight:900;}
+.loan-employee-card{
+  width:100%;box-sizing:border-box;border:1px solid rgba(83,183,220,.28);
+  border-right:5px solid #45C6E8;border-radius:17px;padding:12px 13px;
+  background:linear-gradient(120deg,#FFFFFF,#F5FBFF 58%,#F5F1FF);
+  box-shadow:0 5px 15px rgba(25,64,93,.08),inset 0 1px 0 #fff;
+  color:var(--txt);font-family:'Cairo',sans-serif;text-align:right;cursor:pointer;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease;
+}
+.loan-employee-card:hover{transform:translateY(-2px);border-color:#55CDEB;box-shadow:0 10px 22px rgba(25,64,93,.14),0 0 0 4px rgba(64,210,255,.045);}
+.loan-employee-card:active{transform:scale(.985);}
+.loan-employee-card.blocked{border-right-color:#E5A23C;background:linear-gradient(120deg,#FFFDF8,#FFF8EE);}
+.loan-employee-card.self{border-right-color:#8C72E8;background:linear-gradient(120deg,#FFFFFF,#F8F3FF);}
+.loan-employee-card-top{display:flex;align-items:center;gap:10px;direction:rtl;}
+.loan-employee-avatar{width:42px;height:42px;flex:0 0 42px;border-radius:13px;display:flex;align-items:center;justify-content:center;color:#54DFFF;background:linear-gradient(145deg,#101B36,#27336E);border:1px solid rgba(89,225,255,.58);box-shadow:0 0 13px rgba(79,211,255,.18);}
+.loan-employee-card.self .loan-employee-avatar{color:#D9C9FF;border-color:rgba(159,125,255,.7);background:linear-gradient(145deg,#24184B,#543B89);}
+.loan-employee-main{min-width:0;flex:1;}
+.loan-employee-name{font-size:14px;font-weight:900;color:#16233D;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.loan-employee-code{display:flex;align-items:center;gap:5px;margin-top:2px;color:#70809D;font-size:10px;font-weight:800;direction:rtl;}
+.loan-employee-code i{color:#4FBBD9;font-size:9px;}
+.loan-employee-arrow{color:#7D91AE;font-size:14px;transition:transform .2s ease,color .2s ease;}
+.loan-employee-card:hover .loan-employee-arrow{transform:translateX(-3px);color:#2AADD2;}
+.loan-employee-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px dashed rgba(85,166,201,.27);font-size:10px;font-weight:800;color:#61718D;}
+.loan-employee-meta span{display:inline-flex;align-items:center;gap:4px;background:rgba(235,245,253,.78);border:1px solid rgba(126,190,218,.18);border-radius:999px;padding:4px 8px;}
+.loan-employee-meta i{color:#2FAFD3;}
+.loan-employee-card.blocked .loan-employee-meta span:last-child{color:#A66A18;background:#FFF4D9;border-color:#F4D28B;}
+.loan-employee-badge{display:inline-flex;align-items:center;gap:4px;margin-right:auto;background:#EEE8FF;color:#6649AD;border:1px solid #D7C8FF;border-radius:999px;padding:3px 8px;font-size:9px;font-weight:900;}
+.loan-back-btn{width:100%;margin-bottom:10px;padding:10px 13px;border:1px solid #D5E5F2;border-radius:12px;background:#F6FAFD;color:#4B6482;font:800 12px 'Cairo',sans-serif;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:7px;transition:all .2s;}
+.loan-back-btn:hover{background:#EDF7FC;border-color:#63CBE7;color:#1887A8;}
 .loan-history{margin-top:15px;border-top:1px dashed rgba(85,166,201,.35);padding-top:13px;}
 .loan-history-title{font-size:12px;font-weight:900;color:#425270;margin-bottom:9px;}
 .loan-history-item{border:1px solid rgba(77,160,198,.22);border-radius:13px;padding:10px;margin-bottom:8px;background:linear-gradient(110deg,#F8FCFF,#F5F1FF);font-size:11px;line-height:1.8;box-shadow:inset 0 1px 0 #fff;}
@@ -1579,11 +1612,33 @@ function renderLoanPage(res){
    var form=document.getElementById('loan_form');
    if(!form)return;
    if(!targets||!targets.length){form.innerHTML='';return;}
-    var options=targets.map(function(t){return '<option value="'+loanEsc(t.code)+'">'+loanEsc(t.name)+' — '+loanEsc(t.code)+'</option>';}).join('');
-    form.innerHTML='<div class="loan-target-card">'+
-      '<div class="loan-select-wrap"><label><i class="fas fa-user"></i> الموظف المطلوب له السلفة</label><select id="loan_target" onchange="loanTargetChanged()">'+options+'</select></div>'+
-      '<div id="loan_target_form"></div></div>';
-    S.loanTargets=targets;loanTargetChanged();
+   S.loanTargets=targets;
+   var selfCode=(S.deptInfo&&S.deptInfo.empCode)||'';
+   var cards=targets.map(function(t){
+     var blocked=!!t.blockedMessage||!t.canSubmit;
+     var isSelf=selfCode&&selfCode===t.code;
+     var status=blocked?(t.blockedMessage||'غير متاح حاليًا'):'متاح للتقديم';
+     return '<button type="button" class="loan-employee-card'+(blocked?' blocked':'')+(isSelf?' self':'')+'" data-code="'+loanEsc(t.code)+'" onclick="openLoanTarget(this.dataset.code)">'+
+       '<div class="loan-employee-card-top">'+
+         '<div class="loan-employee-avatar"><i class="fas '+(isSelf?'fa-user-tie':'fa-user')+'"></i></div>'+
+         '<div class="loan-employee-main">'+
+           '<div class="loan-employee-name">'+loanEsc(t.name||'بدون اسم')+'</div>'+
+           '<div class="loan-employee-code"><i class="fas fa-id-badge"></i> كود الموظف: '+loanEsc(t.code)+'</div>'+
+         '</div>'+
+         (isSelf?'<span class="loan-employee-badge"><i class="fas fa-star"></i> ذاتي</span>':'')+
+         '<i class="fas fa-chevron-left loan-employee-arrow"></i>'+
+       '</div>'+
+       '<div class="loan-employee-meta">'+
+         '<span><i class="fas fa-sitemap"></i> '+loanEsc(t.dept||'القسم الحالي')+'</span>'+
+         '<span><i class="fas fa-coins"></i> الحد: '+loanEsc(t.limit||0)+'</span>'+
+         '<span><i class="fas '+(blocked?'fa-lock':'fa-check-circle')+'"></i> '+loanEsc(status)+'</span>'+
+       '</div>'+
+     '</button>';
+   }).join('');
+   form.innerHTML='<div class="loan-employee-list">'+
+     '<div class="loan-employee-list-head"><span><i class="fas fa-users"></i> اختر الموظف المطلوب له السلفة</span><span class="loan-employee-count">'+targets.length+' موظف</span></div>'+
+     cards+
+   '</div><div id="loan_target_form" style="display:none;"></div>';
 }
 function loanEsc(value){
   return (value===null||value===undefined?'':String(value)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1593,6 +1648,25 @@ function loanTargetChanged(){
   var target=(S.loanTargets||[]).find(function(t){return t.code===code;});
   if(target)renderLoanForm(target,'loan_target_form');
 }
+ function openLoanTarget(code){
+   var target=(S.loanTargets||[]).find(function(t){return t.code===code;});
+   var list=document.querySelector('.loan-employee-list');
+   var targetForm=document.getElementById('loan_target_form');
+   if(!target||!targetForm)return;
+   if(list)list.style.display='none';
+   targetForm.style.display='block';
+   renderLoanForm(target,'loan_target_form');
+   var page=document.getElementById('v_loan');
+   if(page)page.scrollIntoView({behavior:'smooth',block:'start'});
+ }
+ function closeLoanTarget(){
+   var list=document.querySelector('.loan-employee-list');
+   var targetForm=document.getElementById('loan_target_form');
+   if(targetForm){targetForm.style.display='none';targetForm.innerHTML='';}
+   if(list)list.style.display='grid';
+   var page=document.getElementById('v_loan');
+   if(page)page.scrollIntoView({behavior:'smooth',block:'start'});
+ }
 function renderLoanForm(target,containerId){
   var container=document.getElementById(containerId||'loan_form');
   if(!container)return;
@@ -1602,11 +1676,12 @@ function renderLoanForm(target,containerId){
   var blocked=target.blockedMessage||
     (!target.canSubmit?'لا يمكن تقديم طلب السلفة حاليًا — راجع فترة فتح السلف أو بيانات الموظف':'');
   var historyHtml=renderLoanHistory(target.loanHistory||[]);
+   var backBtn=(S.role==='deptHead'&&containerId)?'<button type="button" class="loan-back-btn" onclick="closeLoanTarget()"><i class="fas fa-arrow-right"></i> الرجوع إلى قائمة الموظفين</button>':'';
   if(blocked){
-    container.innerHTML='<div class="loan-target-card"><div class="target-title"><i class="fas fa-user"></i> '+loanEsc(target.name)+'</div>'+
+     container.innerHTML=backBtn+'<div class="loan-target-card"><div class="target-title"><i class="fas fa-user"></i> '+loanEsc(target.name)+'</div>'+
       '<div class="loan-closed"><i class="fas fa-ban"></i> '+loanEsc(blocked)+'</div>'+historyHtml+'</div>';return;
   }
-  container.innerHTML='<div class="loan-target-card">'+
+   container.innerHTML=backBtn+'<div class="loan-target-card">'+
     '<div class="target-title"><i class="fas fa-user"></i> '+loanEsc(targetLabel)+': '+loanEsc(target.name)+'</div>'+
     '<div class="loan-limit"><span>الحد الأقصى المسموح</span><strong>'+loanEsc(target.limit)+'</strong></div>'+
     '<div class="fg"><label><i class="fas fa-money-bill-wave"></i> قيمة السلفة</label><input type="number" id="loan_amount" min="50" max="'+loanEsc(target.limit)+'" step="50" placeholder="مضاعفات 50 فقط"></div>'+
