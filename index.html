@@ -929,7 +929,6 @@ body::before{content:'';position:fixed;inset:0;
 <div id="v_loan" style="display:none;" class="fade-up">
   <div class="loan-banner">
     <div class="loan-banner-top">
-      <span class="loan-badge"><i class="fas fa-sparkles"></i> تمويل مرن</span>
       <i class="fas fa-coins loan-coins"></i>
     </div>
     <h3><i class="fas fa-hand-holding-usd"></i> طلب سلفة</h3>
@@ -1544,11 +1543,12 @@ function openLoans(){
   document.getElementById('loan_period_text').textContent='جاري تحميل فترة فتح السلف...';
   var actorCode=S.role==='employee'?(S.empInfo&&S.empInfo.code):(S.deptInfo&&S.deptInfo.code);
   var actorDept=S.role==='deptHead'?(S.deptInfo&&S.deptInfo.dept):'';
-  var actorEmpCode=S.role==='deptHead'?(S.deptInfo&&S.deptInfo.empCode):'';
-  loader(true);
+  var actorEmpCode=(S.role==='deptHead'||S.role==='manager')?(S.deptInfo&&S.deptInfo.empCode):'';
+  // Loan data is a page read, not a submission. Keep the app interactive
+  // and show the local placeholder instead of blocking the whole screen.
   google.script.run
-    .withSuccessHandler(function(res){loader(false);renderLoanPage(res||{});})
-    .withFailureHandler(function(e){loader(false);_DOM('loan_page_msg','<div class="loan-closed"><i class="fas fa-exclamation-circle"></i> تعذر تحميل صفحة السلف: '+e+'</div>');})
+    .withSuccessHandler(function(res){renderLoanPage(res||{});})
+    .withFailureHandler(function(e){_DOM('loan_page_msg','<div class="loan-closed"><i class="fas fa-exclamation-circle"></i> تعذر تحميل صفحة السلف: '+e+'</div>');})
     .getLoanPageData(S.role,actorCode||'',actorDept||'',actorEmpCode||'');
 }
 function renderLoanPage(res){
@@ -1559,7 +1559,8 @@ function renderLoanPage(res){
   if(period)period.textContent=res.periodLabel?('فترة استقبال الطلبات: '+res.periodLabel):'';
   if(!res.open){
     if(msg)msg.innerHTML='<div class="loan-closed"><i class="fas fa-calendar-times"></i> '+(res.message||'طلبات السلف غير متاحة حالياً')+'</div>';
-    if(S.role==='employee'&&(res.targets||[]).length)renderLoanForm(res.targets[0]);
+     if((S.role==='employee'||S.role==='manager')&&(res.targets||[]).length)renderLoanForm(res.targets[0]);
+     else if(S.role==='deptHead'&&(res.targets||[]).length)renderDeptHeadLoanPage(res.targets||[]);
     else if(form)form.innerHTML='';
     return;
   }
@@ -1568,15 +1569,21 @@ function renderLoanPage(res){
   }else if(msg)msg.innerHTML='';
   var targets=res.targets||[];
   if(!targets.length){if(form)form.innerHTML='';return;}
-  if(S.role==='employee'){
+   if(S.role==='employee'||S.role==='manager'){
     renderLoanForm(targets[0]);
   }else if(S.role==='deptHead'){
+     renderDeptHeadLoanPage(targets);
+   }
+ }
+ function renderDeptHeadLoanPage(targets){
+   var form=document.getElementById('loan_form');
+   if(!form)return;
+   if(!targets||!targets.length){form.innerHTML='';return;}
     var options=targets.map(function(t){return '<option value="'+loanEsc(t.code)+'">'+loanEsc(t.name)+' — '+loanEsc(t.code)+'</option>';}).join('');
     form.innerHTML='<div class="loan-target-card">'+
       '<div class="loan-select-wrap"><label><i class="fas fa-user"></i> الموظف المطلوب له السلفة</label><select id="loan_target" onchange="loanTargetChanged()">'+options+'</select></div>'+
       '<div id="loan_target_form"></div></div>';
     S.loanTargets=targets;loanTargetChanged();
-  }
 }
 function loanEsc(value){
   return (value===null||value===undefined?'':String(value)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1589,7 +1596,9 @@ function loanTargetChanged(){
 function renderLoanForm(target,containerId){
   var container=document.getElementById(containerId||'loan_form');
   if(!container)return;
-  var targetLabel=S.role==='employee'?'طلب سلفة لنفسي':'تقديم سلفة للموظف';
+  var actorEmpCode=(S.deptInfo&&S.deptInfo.empCode)||'';
+  var isSelfTarget=S.role==='employee'||S.role==='manager'||(S.role==='deptHead'&&actorEmpCode&&actorEmpCode===target.code);
+  var targetLabel=isSelfTarget?'طلب سلفة لنفسي':'تقديم سلفة للموظف';
   var blocked=target.blockedMessage||
     (!target.canSubmit?'لا يمكن تقديم طلب السلفة حاليًا — راجع فترة فتح السلف أو بيانات الموظف':'');
   var historyHtml=renderLoanHistory(target.loanHistory||[]);
@@ -1624,11 +1633,12 @@ function submitLoanFromPage(targetCode){
   var numericAmount=parseFloat(amount);
   if(!amount||numericAmount<=0||numericAmount%50!==0){toast('قيمة السلفة يجب أن تكون من مضاعفات 50','wrn');return;}
   var actorCode=S.role==='employee'?(S.empInfo&&S.empInfo.code):(S.deptInfo&&S.deptInfo.code);
+  var actorEmpCode=(S.role==='deptHead'||S.role==='manager')?(S.deptInfo&&S.deptInfo.empCode):'';
   loader(true);
   google.script.run
     .withSuccessHandler(function(res){loader(false);if(res&&res.success){toast(res.message,'ok');openLoans();}else toast('❌ '+((res&&res.message)||'تعذر إرسال الطلب'),'err');})
     .withFailureHandler(function(e){loader(false);toast('❌ '+e,'err');})
-    .submitLoanRequest({actorRole:S.role,actorCode:actorCode||'',empCode:targetCode,amount:amount,notes:notes});
+    .submitLoanRequest({actorRole:S.role,actorCode:actorCode||'',actorEmpCode:actorEmpCode||'',empCode:targetCode,amount:amount,notes:notes});
 }
 
 /* STEP 1 */
@@ -1682,7 +1692,8 @@ function enterEmployee(info,restored){
 
   // عند الاسترداد من الجلسة — جلب الرصيد م؆ السيرفر مباشرة
   if(restored){
-    empRefreshBal();
+    // Restore the shell immediately; refresh balances/history in background.
+    empRefreshBal(false);
   } else {
     renderEmpBal(info);
   }
@@ -1691,12 +1702,12 @@ function enterEmployee(info,restored){
     document.getElementById('emp_self_tag').style.display='inline-flex';
     document.getElementById('emp_tabs_wrap').style.display='block';
     document.getElementById('emp_hist_static').style.display='none';
-    loadEmpHist();
+    if(!restored) loadEmpHist();
   } else {
     document.getElementById('emp_self_tag').style.display='none';
     document.getElementById('emp_tabs_wrap').style.display='none';
     document.getElementById('emp_hist_static').style.display='block';
-    renderEmpHistStatic();
+    if(!restored) renderEmpHistStatic();
   }
 
   // إظهار تنبيه الهولد
@@ -1709,10 +1720,12 @@ function enterEmployee(info,restored){
 /* تحديث الرصيد من السيرفر مباشرة */
 function empRefreshBal(showLoading){
   if(!S.empInfo)return;
-  if(showLoading!==false)loader(true);
+  // Balance/history refresh is safe to run in the background. The full
+  // overlay is reserved for actions whose success must be confirmed.
+  if(showLoading===true)loader(true);
   google.script.run
     .withSuccessHandler(function(res){
-      if(showLoading!==false)loader(false);
+      if(showLoading===true)loader(false);
       if(!res.success){toast('❌ فشل التحديث','err');return;}
       S.empInfo.annual      = res.annual;
       S.empInfo.annualLim   = res.annualLim;
@@ -1736,12 +1749,18 @@ function empRefreshBal(showLoading){
       S.empInfo.monthlyUsed = res.monthlyUsed || {};
       S.empInfo.monthlyRem  = res.monthlyRem  || {};
       saveSession();
-      renderEmpBal(S.empInfo);
-      if(S.empInfo.canSelfSubmit) loadEmpHist();
-      else renderEmpHistStatic();
+      renderEmpBal(S.empInfo,res);
+      // refreshEmployeeBalance already returns history; do not request it again.
+      if(S.empInfo.canSelfSubmit){
+        var histTab=document.getElementById('emp_hist_tab');
+        if(histTab)histTab.innerHTML=renderHistItems(res.history||[]);
+      }else{
+        var histStatic=document.getElementById('emp_hist');
+        if(histStatic)histStatic.innerHTML=renderHistItems(res.history||[]);
+      }
       toast('✅ تم تحديث الرصيد','ok');
     })
-    .withFailureHandler(function(e){if(showLoading!==false)loader(false);toast('❌ '+e,'err');})
+    .withFailureHandler(function(e){if(showLoading===true)loader(false);toast('❌ '+e,'err');})
     .refreshEmployeeBalance(S.empInfo.code);
 }
 
@@ -1796,9 +1815,15 @@ function renderEmpFixedRestInfo(d){
   }
 }
 
-function renderEmpBal(d){
+function renderEmpBal(d,quotaData){
   renderEmpFixedRestInfo(d);
   document.getElementById('emp_bal').innerHTML=BAL_CFG.map(function(cfg){return cell(d[cfg.k]||0,cfg,d);}).join('');
+  if(quotaData&&quotaData.permissionRemaining!==undefined){
+    document.getElementById('emp_quota').innerHTML=
+      '<div class="quota-cell'+(quotaData.permissionRemaining===0?' warn':'')+'"><div class="quota-val">'+quotaData.permissionRemaining+'</div><div class="quota-lbl"><i class="fas fa-handshake"></i> إذن متبقي هذا الشهر</div></div>'+
+      '<div class="quota-cell'+(quotaData.authorizationRemaining===0?' warn':'')+'"><div class="quota-val">'+quotaData.authorizationRemaining+'</div><div class="quota-lbl"><i class="fas fa-id-card"></i> تصريح متبقي هذا الشهر</div></div>';
+    return;
+  }
   google.script.run.withSuccessHandler(function(q){
     document.getElementById('emp_quota').innerHTML=
       '<div class="quota-cell'+(q.permissionRemaining===0?' warn':'')+'"><div class="quota-val">'+q.permissionRemaining+'</div><div class="quota-lbl"><i class="fas fa-handshake"></i> إذن متبقي هذا الشهر</div></div>'+
@@ -1807,9 +1832,8 @@ function renderEmpBal(d){
 }
 
 function renderEmpHistStatic(){
-  loader(true);
-  google.script.run.withSuccessHandler(function(res){loader(false);document.getElementById('emp_hist').innerHTML=renderHistItems(res);})
-    .withFailureHandler(function(e){loader(false);toast('❌ '+e,'err');})
+  google.script.run.withSuccessHandler(function(res){document.getElementById('emp_hist').innerHTML=renderHistItems(res);})
+    .withFailureHandler(function(e){toast('❌ '+e,'err');})
     .getEmployeeFullHistory(S.empInfo.code,true);
 }
 
@@ -3397,10 +3421,8 @@ function enterManager(info,restored){
 function loadMgrData(code){
   var myNonce=_nonce;
   if(S._mgrDataCache&&S._mgrDataCache[code]){renderMgrPanel(S._mgrDataCache[code]);return;}
-  loader(true);
   google.script.run
     .withSuccessHandler(function(res){
-      loader(false);
       if(myNonce!==_nonce)return;
       if(!res.success){
         var rb='<button class="btn btn-primary" style="margin-top:12px;" onclick="loadMgrData(\''+code+'\')"><i class="fas fa-redo"></i> إعادة المحاولة</button>';
@@ -3415,7 +3437,6 @@ function loadMgrData(code){
       renderMgrEmpTable(res.employees||[]);
     })
     .withFailureHandler(function(e){
-      loader(false);
       if(myNonce!==_nonce)return;
       var rb='<button class="btn btn-primary" style="margin-top:12px;" onclick="loadMgrData(\''+code+'\')"><i class="fas fa-redo"></i> إعادة المحاولة</button>';
       _DOM('mgr_lv','<div class="empty"><div class="empty-ico"><i class="fas fa-wifi"></i></div><p>تعذّر الاتصال</p>'+rb+'</div>');
@@ -3560,8 +3581,8 @@ function actCancelMgr(row,status,btn){
 
 /* MGR HISTORY */
 function loadMgrHistory(){
-  if(!S.deptInfo)return;loader(true);
-  google.script.run.withSuccessHandler(function(res){loader(false);if(!res.success){toast('❌ خطأ','err');return;}S.histAll=res.list||[];filterMgrHistory();}).withFailureHandler(function(e){loader(false);toast('❌ '+e,'err');}).getManagerHistory(S.deptInfo.code);
+  if(!S.deptInfo)return;
+  google.script.run.withSuccessHandler(function(res){if(!res.success){toast('❌ خطأ','err');return;}S.histAll=res.list||[];filterMgrHistory();}).withFailureHandler(function(e){toast('❌ '+e,'err');}).getManagerHistory(S.deptInfo.code);
 }
 function setHistKind(kind){
   S.histKind=kind;
