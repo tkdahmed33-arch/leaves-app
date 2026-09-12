@@ -1365,7 +1365,8 @@ function renderLoanForm(target,containerId){
   var container=document.getElementById(containerId||'loan_form');
   if(!container)return;
   var targetLabel=S.role==='employee'?'طلب سلفة لنفسي':'تقديم سلفة للموظف';
-  var blocked=target.blockedMessage||(!target.canSubmit?'طلبات السلف غير متاحة لهذا الموظف':'');
+  var blocked=target.blockedMessage||
+    (!target.canSubmit?'لا يمكن تقديم طلب السلفة حاليًا — راجع فترة فتح السلف أو بيانات الموظف':'');
   var historyHtml=renderLoanHistory(target.loanHistory||[]);
   if(blocked){
     container.innerHTML='<div class="loan-target-card"><div class="target-title"><i class="fas fa-user"></i> '+loanEsc(target.name)+'</div>'+
