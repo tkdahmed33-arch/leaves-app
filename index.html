@@ -100,6 +100,14 @@ body{min-height:100vh;}
 .loan-select-wrap{margin-bottom:12px;}
 .loan-select-wrap label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--txt2);margin-bottom:6px;}
 .loan-select-wrap label i{color:var(--gold);}
+.loan-history{margin-top:14px;border-top:1px dashed var(--border);padding-top:12px;}
+.loan-history-title{font-size:12px;font-weight:900;color:var(--txt2);margin-bottom:8px;}
+.loan-history-item{border:1px solid var(--border);border-radius:var(--r10);padding:10px;margin-bottom:8px;background:var(--bg);font-size:11px;line-height:1.8;}
+.loan-history-item strong{color:var(--txt);}
+.loan-status{display:inline-block;border-radius:20px;padding:2px 9px;font-size:10px;font-weight:900;background:#FDEBD0;color:#935116;}
+.loan-status.ok{background:#D5F5E3;color:#196F3D;}
+.loan-status.no{background:#FADBD8;color:#922B21;}
+.loan-amounts{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;}
 .steps{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px;}
 .sdot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;transition:all .35s;}
 .sdot.on{background:var(--p);color:#fff;box-shadow:0 4px 12px rgba(192,57,43,.4);}
@@ -1326,7 +1334,9 @@ function renderLoanPage(res){
   if(period)period.textContent=res.periodLabel?('فترة استقبال الطلبات: '+res.periodLabel):'';
   if(!res.open){
     if(msg)msg.innerHTML='<div class="loan-closed"><i class="fas fa-calendar-times"></i> '+(res.message||'طلبات السلف غير متاحة حالياً')+'</div>';
-    if(form)form.innerHTML='';return;
+    if(S.role==='employee'&&(res.targets||[]).length)renderLoanForm(res.targets[0]);
+    else if(form)form.innerHTML='';
+    return;
   }
   if(res.message&&(!res.targets||!res.targets.length)){
     if(msg)msg.innerHTML='<div class="loan-closed"><i class="fas fa-info-circle"></i> '+res.message+'</div>';
@@ -1356,21 +1366,37 @@ function renderLoanForm(target,containerId){
   if(!container)return;
   var targetLabel=S.role==='employee'?'طلب سلفة لنفسي':'تقديم سلفة للموظف';
   var blocked=target.blockedMessage||(!target.canSubmit?'طلبات السلف غير متاحة لهذا الموظف':'');
+  var historyHtml=renderLoanHistory(target.loanHistory||[]);
   if(blocked){
     container.innerHTML='<div class="loan-target-card"><div class="target-title"><i class="fas fa-user"></i> '+loanEsc(target.name)+'</div>'+
-      '<div class="loan-closed"><i class="fas fa-ban"></i> '+loanEsc(blocked)+'</div></div>';return;
+      '<div class="loan-closed"><i class="fas fa-ban"></i> '+loanEsc(blocked)+'</div>'+historyHtml+'</div>';return;
   }
   container.innerHTML='<div class="loan-target-card">'+
     '<div class="target-title"><i class="fas fa-user"></i> '+loanEsc(targetLabel)+': '+loanEsc(target.name)+'</div>'+
     '<div class="loan-limit"><span>الحد الأقصى المسموح</span><strong>'+loanEsc(target.limit)+'</strong></div>'+
-    '<div class="fg"><label><i class="fas fa-money-bill-wave"></i> قيمة السلفة</label><input type="number" id="loan_amount" min="1" max="'+loanEsc(target.limit)+'" step="any" placeholder="أدخل القيمة"></div>'+
+    '<div class="fg"><label><i class="fas fa-money-bill-wave"></i> قيمة السلفة</label><input type="number" id="loan_amount" min="50" max="'+loanEsc(target.limit)+'" step="50" placeholder="مضاعفات 50 فقط"></div>'+
     '<div class="fg"><label><i class="fas fa-comment"></i> ملاحظات</label><textarea id="loan_notes" placeholder="اختياري..."></textarea></div>'+
-    '<button class="btn btn-primary" onclick="submitLoanFromPage(\''+loanEsc(target.code)+'\')"><i class="fas fa-paper-plane"></i> إرسال طلب السلفة</button></div>';
+    '<button class="btn btn-primary" onclick="submitLoanFromPage(\''+loanEsc(target.code)+'\')"><i class="fas fa-paper-plane"></i> إرسال طلب السلفة</button>'+historyHtml+'</div>';
+}
+function renderLoanHistory(history){
+  if(!history||!history.length)return '';
+  return '<div class="loan-history"><div class="loan-history-title"><i class="fas fa-history"></i> سجل السلف</div>'+
+    history.map(function(item){
+      var st=item.status||'—',cls=st==='موافق'?'ok':(st==='مرفوض'?'no':'');
+      var approved=item.approvedAmount===null||item.approvedAmount===undefined?'لم يحدد بعد':loanEsc(item.approvedAmount);
+      return '<div class="loan-history-item">'+
+        '<div><strong>'+loanEsc(item.requestDate)+'</strong> &nbsp; <span class="loan-status '+cls+'">'+loanEsc(st)+'</span></div>'+
+        '<div class="loan-amounts"><span>المطلوب: <strong>'+loanEsc(item.requestedAmount)+'</strong></span><span>المعتمد: <strong>'+approved+'</strong></span></div>'+
+        (item.hrComment?'<div><i class="fas fa-comment"></i> تعليق HR: '+loanEsc(item.hrComment)+'</div>':'')+
+        (item.hrName?'<div><i class="fas fa-user-shield"></i> رأي HR بواسطة: '+loanEsc(item.hrName)+'</div>':'')+
+      '</div>';
+    }).join('')+'</div>';
 }
 function submitLoanFromPage(targetCode){
   var amount=(document.getElementById('loan_amount')||{}).value||'';
   var notes=(document.getElementById('loan_notes')||{}).value||'';
-  if(!amount||parseFloat(amount)<=0){toast('أدخل قيمة صحيحة للسلفة','wrn');return;}
+  var numericAmount=parseFloat(amount);
+  if(!amount||numericAmount<=0||numericAmount%50!==0){toast('قيمة السلفة يجب أن تكون من مضاعفات 50','wrn');return;}
   var actorCode=S.role==='employee'?(S.empInfo&&S.empInfo.code):(S.deptInfo&&S.deptInfo.code);
   loader(true);
   google.script.run
