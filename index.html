@@ -76,6 +76,30 @@ body{min-height:100vh;}
 .l-icon i{font-size:40px;color:#fff;}
 .l-title{text-align:center;font-size:24px;font-weight:900;margin-bottom:5px;color:var(--txt);}
 .l-sub{text-align:center;color:var(--txt2);font-size:13px;margin-bottom:28px;line-height:1.7;}
+.home-welcome{text-align:center;padding:8px 0 4px;}
+.home-welcome .l-icon{margin-bottom:14px;}
+.home-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;}
+.home-card{border:1px solid var(--border);border-radius:var(--r20);background:var(--card);padding:22px 10px;min-height:150px;cursor:pointer;font-family:'Cairo',sans-serif;box-shadow:var(--s1);transition:transform .22s,box-shadow .22s,border-color .22s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--txt);font-size:15px;font-weight:900;}
+.home-card:hover{transform:translateY(-3px);box-shadow:var(--s2);border-color:var(--p);}
+.home-card i{font-size:38px;color:var(--p);}
+.home-card.loan i{color:var(--gold);}
+.home-card small{font-size:10px;color:var(--txt2);font-weight:600;}
+.loan-banner{background:linear-gradient(145deg,#7D6608,#D4AC0D,#F4D03F);border-radius:var(--r16);padding:20px;margin-bottom:14px;position:relative;overflow:hidden;color:#fff;}
+.loan-banner::after{content:'';position:absolute;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.14);top:-80px;left:-45px;}
+.loan-banner>*{position:relative;z-index:1;}
+.loan-banner h3{font-size:20px;font-weight:900;margin-bottom:4px;}
+.loan-banner p{font-size:12px;opacity:.9;line-height:1.8;}
+.loan-info{display:flex;align-items:flex-start;gap:8px;background:var(--gold-l);border:1px solid #F8C471;border-radius:var(--r10);padding:11px 12px;margin-bottom:12px;font-size:12px;font-weight:700;color:#7D6608;line-height:1.7;}
+.loan-info i{margin-top:4px;flex-shrink:0;}
+.loan-target-card{background:var(--card);border:1px solid var(--border);border-radius:var(--r16);padding:15px;box-shadow:var(--s1);margin-bottom:12px;}
+.loan-target-card .target-title{font-size:13px;font-weight:900;margin-bottom:10px;display:flex;align-items:center;gap:7px;}
+.loan-target-card .target-title i{color:var(--gold);}
+.loan-limit{display:flex;justify-content:space-between;align-items:center;background:var(--bg);border-radius:var(--r10);padding:9px 11px;margin-bottom:12px;font-size:12px;font-weight:700;color:var(--txt2);}
+.loan-limit strong{font-size:17px;color:var(--gold);}
+.loan-closed{background:var(--pxl);border:1px solid #F1948A;color:var(--pd);border-radius:var(--r10);padding:12px;font-size:12px;font-weight:800;line-height:1.7;}
+.loan-select-wrap{margin-bottom:12px;}
+.loan-select-wrap label{display:flex;align-items:center;gap:7px;font-size:12px;font-weight:800;color:var(--txt2);margin-bottom:6px;}
+.loan-select-wrap label i{color:var(--gold);}
 .steps{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:28px;}
 .sdot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;transition:all .35s;}
 .sdot.on{background:var(--p);color:#fff;box-shadow:0 4px 12px rgba(192,57,43,.4);}
@@ -650,6 +674,39 @@ body::before{content:'';position:fixed;inset:0;
   </div>
 </div>
 
+<!-- HOME VIEW -->
+<div id="v_home" style="display:none;" class="fade-up">
+  <div class="home-welcome">
+    <div class="l-icon"><i class="fas fa-th-large"></i></div>
+    <div class="l-title">القائمة الرئيسية</div>
+    <div class="l-sub">اختر القسم الذي تريد الدخول إليه</div>
+  </div>
+  <div class="home-grid">
+    <button class="home-card" onclick="openRequests()">
+      <i class="fas fa-file-signature"></i>
+      <span>طلبات</span>
+      <small>الإجازات والأذونات والتصاريح</small>
+    </button>
+    <button class="home-card loan" onclick="openLoans()">
+      <i class="fas fa-hand-holding-usd"></i>
+      <span>سلفة</span>
+      <small>تقديم طلب سلفة</small>
+    </button>
+  </div>
+  <button class="btn btn-ghost" style="margin-top:14px;" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
+</div>
+
+<!-- LOAN VIEW -->
+<div id="v_loan" style="display:none;" class="fade-up">
+  <div class="loan-banner">
+    <h3><i class="fas fa-hand-holding-usd"></i> طلب سلفة</h3>
+    <p id="loan_period_text">جاري تحميل فترة فتح السلف...</p>
+  </div>
+  <button class="btn btn-ghost" style="margin-bottom:12px;" onclick="goHome()"><i class="fas fa-arrow-right"></i> الرئيسية</button>
+  <div id="loan_page_msg"></div>
+  <div id="loan_form"></div>
+</div>
+
 <!-- EMPLOYEE VIEW -->
 <div id="v_emp" style="display:none;" class="fade-up">
   <div class="profile-banner">
@@ -663,6 +720,7 @@ body::before{content:'';position:fixed;inset:0;
     </div>
     <div class="pb-actions">
       <button class="pb-btn btn-refresh" onclick="empRefreshBal()"><i class="fas fa-sync-alt"></i> تحديث الرصيد</button>
+      <button class="pb-btn" onclick="goHome()"><i class="fas fa-home"></i> الرئيسية</button>
       <button class="pb-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
     </div>
   </div>
@@ -840,6 +898,7 @@ body::before{content:'';position:fixed;inset:0;
       </div>
     </div>
     <div class="pb-actions">
+      <button class="pb-btn" onclick="goHome()"><i class="fas fa-home"></i> الرئيسية</button>
       <button class="pb-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
     </div>
   </div>
@@ -1023,6 +1082,7 @@ body::before{content:'';position:fixed;inset:0;
       </div>
     </div>
     <div class="pb-actions">
+      <button class="pb-btn" onclick="goHome()"><i class="fas fa-home"></i> الرئيسية</button>
       <button class="pb-btn" onclick="logout()"><i class="fas fa-sign-out-alt"></i> خروج</button>
     </div>
   </div>
@@ -1089,6 +1149,7 @@ body::before{content:'';position:fixed;inset:0;
 var S={
   role:null,deptInfo:null,empInfo:null,
   dhEmps:[],dhFiltered:[],dhEmp:null,dhData:null,
+  loanTargets:[],
   histAll:[],histKind:'all',
   selfData:null,medFile:null,empMedFile:null,
   serverDate:null,
@@ -1227,7 +1288,96 @@ function toast(msg,type){
   clearTimeout(_tt);_tt=setTimeout(function(){el.className=type||'ok';},3400);
 }
 function loader(on){var ov=document.getElementById('overlay');if(ov)ov.classList.toggle('show',on);}
-function showOnly(id){['v_step1','v_step2','v_emp','v_dh','v_mgr'].forEach(function(v){document.getElementById(v).style.display=v===id?'block':'none';});}
+function showOnly(id){['v_step1','v_step2','v_home','v_loan','v_emp','v_dh','v_mgr'].forEach(function(v){var el=document.getElementById(v);if(el)el.style.display=v===id?'block':'none';});}
+function goHome(){
+  if(!S.role){showOnly('v_step1');return;}
+  showOnly('v_home');
+  window.scrollTo(0,0);
+  var content=document.querySelector('.content');if(content)content.scrollTop=0;
+}
+function openRequests(){
+  if(S.role==='employee')showOnly('v_emp');
+  else if(S.role==='deptHead')showOnly('v_dh');
+  else if(S.role==='manager')showOnly('v_mgr');
+  else showOnly('v_step1');
+  window.scrollTo(0,0);
+  var content=document.querySelector('.content');if(content)content.scrollTop=0;
+}
+function openLoans(){
+  if(!S.role){toast('سجّل الدخول أولاً','wrn');return;}
+  showOnly('v_loan');
+  _DOM('loan_page_msg',LOADING_HTML);
+  _DOM('loan_form','');
+  document.getElementById('loan_period_text').textContent='جاري تحميل فترة فتح السلف...';
+  var actorCode=S.role==='employee'?(S.empInfo&&S.empInfo.code):(S.deptInfo&&S.deptInfo.code);
+  var actorDept=S.role==='deptHead'?(S.deptInfo&&S.deptInfo.dept):'';
+  var actorEmpCode=S.role==='deptHead'?(S.deptInfo&&S.deptInfo.empCode):'';
+  loader(true);
+  google.script.run
+    .withSuccessHandler(function(res){loader(false);renderLoanPage(res||{});})
+    .withFailureHandler(function(e){loader(false);_DOM('loan_page_msg','<div class="loan-closed"><i class="fas fa-exclamation-circle"></i> تعذر تحميل صفحة السلف: '+e+'</div>');})
+    .getLoanPageData(S.role,actorCode||'',actorDept||'',actorEmpCode||'');
+}
+function renderLoanPage(res){
+  var period=document.getElementById('loan_period_text');
+  var msg=document.getElementById('loan_page_msg');
+  var form=document.getElementById('loan_form');
+  if(!res.success){if(period)period.textContent='';if(msg)msg.innerHTML='<div class="loan-closed"><i class="fas fa-exclamation-circle"></i> '+(res.message||'تعذر تحميل البيانات')+'</div>';return;}
+  if(period)period.textContent=res.periodLabel?('فترة استقبال الطلبات: '+res.periodLabel):'';
+  if(!res.open){
+    if(msg)msg.innerHTML='<div class="loan-closed"><i class="fas fa-calendar-times"></i> '+(res.message||'طلبات السلف غير متاحة حالياً')+'</div>';
+    if(form)form.innerHTML='';return;
+  }
+  if(res.message&&(!res.targets||!res.targets.length)){
+    if(msg)msg.innerHTML='<div class="loan-closed"><i class="fas fa-info-circle"></i> '+res.message+'</div>';
+  }else if(msg)msg.innerHTML='';
+  var targets=res.targets||[];
+  if(!targets.length){if(form)form.innerHTML='';return;}
+  if(S.role==='employee'){
+    renderLoanForm(targets[0]);
+  }else if(S.role==='deptHead'){
+    var options=targets.map(function(t){return '<option value="'+loanEsc(t.code)+'">'+loanEsc(t.name)+' — '+loanEsc(t.code)+'</option>';}).join('');
+    form.innerHTML='<div class="loan-target-card">'+
+      '<div class="loan-select-wrap"><label><i class="fas fa-user"></i> الموظف المطلوب له السلفة</label><select id="loan_target" onchange="loanTargetChanged()">'+options+'</select></div>'+
+      '<div id="loan_target_form"></div></div>';
+    S.loanTargets=targets;loanTargetChanged();
+  }
+}
+function loanEsc(value){
+  return (value===null||value===undefined?'':String(value)).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+function loanTargetChanged(){
+  var code=(document.getElementById('loan_target')||{}).value||'';
+  var target=(S.loanTargets||[]).find(function(t){return t.code===code;});
+  if(target)renderLoanForm(target,'loan_target_form');
+}
+function renderLoanForm(target,containerId){
+  var container=document.getElementById(containerId||'loan_form');
+  if(!container)return;
+  var targetLabel=S.role==='employee'?'طلب سلفة لنفسي':'تقديم سلفة للموظف';
+  var blocked=target.blockedMessage||(!target.canSubmit?'طلبات السلف غير متاحة لهذا الموظف':'');
+  if(blocked){
+    container.innerHTML='<div class="loan-target-card"><div class="target-title"><i class="fas fa-user"></i> '+loanEsc(target.name)+'</div>'+
+      '<div class="loan-closed"><i class="fas fa-ban"></i> '+loanEsc(blocked)+'</div></div>';return;
+  }
+  container.innerHTML='<div class="loan-target-card">'+
+    '<div class="target-title"><i class="fas fa-user"></i> '+loanEsc(targetLabel)+': '+loanEsc(target.name)+'</div>'+
+    '<div class="loan-limit"><span>الحد الأقصى المسموح</span><strong>'+loanEsc(target.limit)+'</strong></div>'+
+    '<div class="fg"><label><i class="fas fa-money-bill-wave"></i> قيمة السلفة</label><input type="number" id="loan_amount" min="1" max="'+loanEsc(target.limit)+'" step="any" placeholder="أدخل القيمة"></div>'+
+    '<div class="fg"><label><i class="fas fa-comment"></i> ملاحظات</label><textarea id="loan_notes" placeholder="اختياري..."></textarea></div>'+
+    '<button class="btn btn-primary" onclick="submitLoanFromPage(\''+loanEsc(target.code)+'\')"><i class="fas fa-paper-plane"></i> إرسال طلب السلفة</button></div>';
+}
+function submitLoanFromPage(targetCode){
+  var amount=(document.getElementById('loan_amount')||{}).value||'';
+  var notes=(document.getElementById('loan_notes')||{}).value||'';
+  if(!amount||parseFloat(amount)<=0){toast('أدخل قيمة صحيحة للسلفة','wrn');return;}
+  var actorCode=S.role==='employee'?(S.empInfo&&S.empInfo.code):(S.deptInfo&&S.deptInfo.code);
+  loader(true);
+  google.script.run
+    .withSuccessHandler(function(res){loader(false);if(res&&res.success){toast(res.message,'ok');openLoans();}else toast('❌ '+((res&&res.message)||'تعذر إرسال الطلب'),'err');})
+    .withFailureHandler(function(e){loader(false);toast('❌ '+e,'err');})
+    .submitLoanRequest({actorRole:S.role,actorCode:actorCode||'',empCode:targetCode,amount:amount,notes:notes});
+}
 
 /* STEP 1 */
 function step1(){
@@ -1262,7 +1412,7 @@ function backToStep1(){showOnly('v_step1');document.getElementById('empCode').va
 function logout(){
   _nonce++;
   clearSession();
-  S={role:null,deptInfo:null,empInfo:null,dhEmps:[],dhFiltered:[],dhEmp:null,dhData:null,histAll:[],histKind:'all',selfData:null,medFile:null,empMedFile:null,serverDate:S.serverDate,officialHolidays:S.officialHolidays||[],empCancelLeaves:{}};
+  S={role:null,deptInfo:null,empInfo:null,dhEmps:[],dhFiltered:[],dhEmp:null,dhData:null,loanTargets:[],histAll:[],histKind:'all',selfData:null,medFile:null,empMedFile:null,serverDate:S.serverDate,officialHolidays:S.officialHolidays||[],empCancelLeaves:{}};
   ['mgr_lv','mgr_pm','mgr_au','mgr_cancel','mgr_empTable','mgr_histList','mgr_selfContent',
    'dh_empList','dhp_lv','dhp_pm','dhp_au','dhp_approve','dhp_cancel'].forEach(function(id){_DOM(id,LOADING_HTML);});
   loader(false);
@@ -1276,7 +1426,7 @@ function enterEmployee(info,restored){
   _syncFcmTokenForCurrentUser();
   document.getElementById('emp_name').textContent=info.name;
   document.getElementById('emp_dept').textContent=(info.dept||'')+(info.admin?' — '+info.admin:'')+(info.admin2?' / '+info.admin2:'');
-  showOnly('v_emp');saveSession();
+  showOnly('v_home');saveSession();
 
   // عند الاسترداد من الجلسة — جلب الرصيد م؆ السيرفر مباشرة
   if(restored){
@@ -2174,7 +2324,7 @@ function enterDeptHead(info,restored){
   document.getElementById('dh_info').innerHTML='<i class="fas fa-user"></i> '+(info.personName||'')+' &nbsp;·&nbsp; <i class="fas fa-sitemap"></i> '+(info.dept||'');
   _DOM('dh_empList',LOADING_HTML);_DOM('dhp_lv',LOADING_HTML);
   _DOM('dhp_pm',LOADING_HTML);_DOM('dhp_au',LOADING_HTML);_DOM('dhp_cancel',LOADING_HTML);
-  showOnly('v_dh');saveSession();loadDHData();
+  showOnly('v_home');saveSession();loadDHData();
   if(info.empCode)loadSelfData(info.empCode,'dh');
   if(!restored)toast('مرحباً '+(info.personName||'رئيس القسم'),'ok');
 }
@@ -2987,7 +3137,7 @@ function enterManager(info,restored){
   document.getElementById('mgr_info').innerHTML='<i class="fas fa-user"></i> '+(info.personName||'')+' &nbsp;·&nbsp; <i class="fas fa-building"></i> '+disp;
   _DOM('mgr_lv',LOADING_HTML);_DOM('mgr_pm',LOADING_HTML);_DOM('mgr_au',LOADING_HTML);_DOM('mgr_cancel',LOADING_HTML);
   _DOM('mgr_empTable',LOADING_HTML);_DOM('mgr_histList',LOADING_HTML);
-  showOnly('v_mgr');saveSession();loadMgrData(info.code);
+  showOnly('v_home');saveSession();loadMgrData(info.code);
   if(info.empCode)loadSelfData(info.empCode,'mgr');
   if(!restored)toast('مرحباً '+(info.personName||'المدير'),'ok');
 }
