@@ -27,8 +27,8 @@
   --sp:0 4px 20px rgba(192,57,43,.30);
   --r4:4px;--r8:8px;--r10:10px;--r12:12px;--r16:16px;--r20:20px;--r24:24px;--rfull:999px;
 }
-html,body{height:100%;font-family:'Cairo',sans-serif;color:var(--txt);background:var(--bg);}
-body{min-height:100vh;}
+html,body{height:100%;font-family:'Cairo',sans-serif;color:var(--txt);background:var(--bg);overflow-x:hidden;}
+body{min-height:100vh;max-width:100vw;}
 .app{max-width:500px;margin:0 auto;min-height:100vh;display:flex;flex-direction:column;}
 @media(min-width:560px){.app{margin:24px auto;min-height:auto;border-radius:var(--r24);overflow:hidden;box-shadow:var(--s3);}}
 
@@ -44,8 +44,8 @@ body{min-height:100vh;}
 .hdr-title{color:#fff;font-size:clamp(20px,5vw,24px);font-weight:900;line-height:1.1;margin-bottom:4px;}
 .hdr-sub{color:rgba(255,255,255,.70);font-size:12px;font-weight:500;}
 
-.content{flex:1;overflow-y:auto;background:var(--bg);}
-.sec{padding:18px;}
+.content{flex:1;min-width:0;overflow-y:auto;overflow-x:hidden;background:var(--bg);}
+.sec{padding:18px;min-width:0;max-width:100%;}
 .sec + .sec{padding-top:0;}
 
 #toast{position:fixed;top:16px;left:50%;transform:translateX(-50%) translateY(-100px);z-index:9999;min-width:270px;max-width:calc(100vw - 28px);padding:13px 16px;border-radius:var(--r12);font-size:13px;font-weight:700;display:flex;align-items:center;gap:10px;box-shadow:var(--s3);transition:transform .4s cubic-bezier(.34,1.56,.64,1),opacity .3s;opacity:0;backdrop-filter:blur(10px);}
@@ -298,7 +298,7 @@ body{min-height:100vh;}
 .loan-employee-list-head i{color:#2FC5ED;text-shadow:0 0 8px rgba(47,197,237,.45);}
 .loan-employee-count{background:#EEF5FF;color:#49658C;border:1px solid #D8E7FA;border-radius:999px;padding:3px 9px;font-size:10px;font-weight:900;}
 .loan-employee-card{
-  width:100%;box-sizing:border-box;border:1px solid rgba(83,183,220,.28);
+  width:100%;min-width:0;box-sizing:border-box;border:1px solid rgba(83,183,220,.28);
   border-right:5px solid #45C6E8;border-radius:17px;padding:12px 13px;
   background:linear-gradient(120deg,#FFFFFF,#F5FBFF 58%,#F5F1FF);
   box-shadow:0 5px 15px rgba(25,64,93,.08),inset 0 1px 0 #fff;
@@ -319,7 +319,7 @@ body{min-height:100vh;}
 .loan-employee-arrow{color:#7D91AE;font-size:14px;transition:transform .2s ease,color .2s ease;}
 .loan-employee-card:hover .loan-employee-arrow{transform:translateX(-3px);color:#2AADD2;}
 .loan-employee-meta{display:flex;align-items:center;gap:7px;flex-wrap:wrap;margin-top:10px;padding-top:9px;border-top:1px dashed rgba(85,166,201,.27);font-size:11px;font-weight:800;color:#61718D;}
-.loan-employee-meta span{display:inline-flex;align-items:center;gap:4px;background:rgba(235,245,253,.78);border:1px solid rgba(126,190,218,.18);border-radius:999px;padding:4px 8px;}
+.loan-employee-meta span{display:inline-flex;align-items:center;gap:4px;max-width:100%;white-space:normal;overflow-wrap:anywhere;background:rgba(235,245,253,.78);border:1px solid rgba(126,190,218,.18);border-radius:999px;padding:4px 8px;}
 .loan-employee-meta i{color:#2FAFD3;}
 .loan-employee-card.blocked .loan-employee-meta span:last-child{color:#A66A18;background:#FFF4D9;border-color:#F4D28B;}
 .loan-employee-badge{display:inline-flex;align-items:center;gap:4px;margin-right:auto;background:#EEE8FF;color:#6649AD;border:1px solid #D7C8FF;border-radius:999px;padding:3px 8px;font-size:9px;font-weight:900;}
@@ -327,7 +327,7 @@ body{min-height:100vh;}
 .loan-back-btn:hover{background:#EDF7FC;border-color:#63CBE7;color:#1887A8;}
 .loan-history{margin-top:15px;border-top:1px dashed rgba(85,166,201,.35);padding-top:13px;}
 .loan-target-card .fg label{font-size:13px;}
-.loan-target-card .fg input,.loan-target-card .fg textarea{font-size:16px;padding:14px 15px;}
+.loan-target-card .fg input,.loan-target-card .fg textarea{font-size:16px;padding:14px 15px;max-width:100%;}
 .loan-history-title{font-size:14px;font-weight:900;color:#425270;margin-bottom:9px;}
 .loan-history-item{border:1px solid rgba(77,160,198,.22);border-radius:13px;padding:11px;margin-bottom:8px;background:linear-gradient(110deg,#F8FCFF,#F5F1FF);font-size:13px;line-height:1.9;box-shadow:inset 0 1px 0 #fff;}
 .loan-history-item strong{color:var(--txt);}
@@ -365,8 +365,8 @@ body{min-height:100vh;}
 .btn-no{background:linear-gradient(135deg,#922B21,#C0392B);color:#fff;padding:11px 16px;font-size:13px;box-shadow:0 3px 12px rgba(146,43,33,.3);}
 .btn-no:hover:not(:disabled){box-shadow:0 5px 18px rgba(146,43,33,.4);transform:translateY(-1px);}
 .btn-sm{padding:9px 14px;font-size:12px;border-radius:var(--r8);}
-.btn-row{display:flex;gap:8px;margin-top:14px;}
-.btn-row .btn{flex:1;}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;min-width:0;margin-top:14px;}
+.btn-row .btn{flex:1;min-width:120px;}
 .reason-inp{width:100%;box-sizing:border-box;margin-top:8px;padding:8px 10px;border:1px solid #dfe3e8;border-radius:8px;font-size:13px;font-family:inherit;}
 .reason-inp:focus{outline:none;border-color:var(--purple,#8e44ad);}
 .btn-filter{background:linear-gradient(135deg,var(--p),var(--pl));color:#fff;border:none;border-radius:var(--r10);padding:11px 18px;font-family:'Cairo',sans-serif;font-size:13px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px;box-shadow:0 3px 12px rgba(192,57,43,.3);transition:all .22s;}
@@ -507,14 +507,14 @@ body{min-height:100vh;}
 .s-badge.zero{background:#FEE2E2;color:#922B21;}
 .s-total{font-size:11px;color:var(--txt3);font-weight:700;}
 
-.emp-chip{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--border);border-radius:var(--r12);padding:12px 14px;cursor:pointer;transition:all .2s;margin-bottom:7px;}
+.emp-chip{display:flex;align-items:center;gap:12px;min-width:0;max-width:100%;background:var(--card);border:2px solid var(--border);border-radius:var(--r12);padding:12px 14px;cursor:pointer;transition:all .2s;margin-bottom:7px;}
 .emp-chip:hover{border-color:var(--p);box-shadow:var(--s2);transform:translateX(-2px);}
 .emp-chip.sel{border-color:var(--p);background:var(--pxl);box-shadow:0 0 0 3px rgba(192,57,43,.12);}
 .ec-av{width:42px;height:42px;border-radius:var(--r10);background:linear-gradient(135deg,var(--p),var(--pl));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 3px 8px rgba(192,57,43,.25);}
 .ec-av i{font-size:18px;color:#fff;}
 .ec-info{flex:1;min-width:0;}
 .ec-name{font-size:14px;font-weight:800;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ec-code{font-size:11px;color:var(--txt3);margin-top:2px;display:flex;align-items:center;gap:4px;}
+.ec-code{font-size:11px;color:var(--txt3);margin-top:2px;display:flex;align-items:center;gap:4px;min-width:0;white-space:normal;overflow-wrap:anywhere;}
 .ec-arr{color:var(--border2);font-size:11px;transition:color .2s;flex-shrink:0;}
 .emp-chip:hover .ec-arr{color:var(--p);}
 
@@ -560,7 +560,7 @@ body{min-height:100vh;}
 .tsg select{flex:1;padding:10px 3px;font-size:12px;text-align:center;border-radius:var(--r8);border:2px solid var(--border);background:var(--card2);font-family:'Cairo',sans-serif;cursor:pointer;outline:none;transition:border-color .2s;-webkit-appearance:none;}
 .tsg select:focus{border-color:var(--p);}
 
-.req-card{background:var(--card);border-radius:var(--r16);padding:16px;margin-bottom:12px;border:1px solid var(--border);border-right:5px solid;transition:all .22s;}
+.req-card{min-width:0;max-width:100%;overflow:hidden;background:var(--card);border-radius:var(--r16);padding:16px;margin-bottom:12px;border:1px solid var(--border);border-right:5px solid;transition:all .22s;}
 .req-card:hover{box-shadow:var(--s2);}
 .req-card.t-lv{border-right-color:var(--blue);}
 .req-card.t-pm{border-right-color:var(--orange);}
@@ -569,7 +569,7 @@ body{min-height:100vh;}
 .req-card.t-cn::before{content:'ملغاة';position:absolute;top:9px;left:-18px;background:var(--p);color:#fff;font-size:8px;font-weight:900;padding:4px 26px;transform:rotate(45deg);letter-spacing:.8px;pointer-events:none;}
 .req-card.t-self{border-right-color:var(--teal);}
 .req-card.t-cancel{border-right-color:var(--p);background:linear-gradient(160deg,#FFF0F0 0%,#fff 55%);border-top:2px solid rgba(192,57,43,.18);}
-.rc-hd{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.rc-hd{display:flex;align-items:center;gap:10px;min-width:0;margin-bottom:12px;}
 .rc-av{width:40px;height:40px;border-radius:var(--r10);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .rc-av.t-lv{background:var(--blue-l);} .rc-av.t-lv i{color:var(--blue);}
 .rc-av.t-pm{background:var(--orange-l);} .rc-av.t-pm i{color:var(--orange);}
@@ -577,9 +577,9 @@ body{min-height:100vh;}
 .rc-av.t-self{background:var(--teal-l);} .rc-av.t-self i{color:var(--teal);}
 .rc-av.t-cancel{background:#FDEDEC;} .rc-av.t-cancel i{color:var(--p);}
 .rc-av i{font-size:17px;}
-.rc-name{font-size:15px;font-weight:900;color:var(--txt);}
-.rc-dept{font-size:11px;color:var(--txt3);margin-top:2px;display:flex;align-items:center;gap:4px;}
-.rc-row{font-size:13px;color:var(--txt2);margin-bottom:5px;display:flex;align-items:center;gap:7px;}
+.rc-name{font-size:15px;font-weight:900;color:var(--txt);max-width:100%;overflow-wrap:anywhere;}
+.rc-dept{font-size:11px;color:var(--txt3);margin-top:2px;display:flex;align-items:center;gap:4px;min-width:0;max-width:100%;white-space:normal;overflow-wrap:anywhere;}
+.rc-row{min-width:0;max-width:100%;font-size:13px;color:var(--txt2);margin-bottom:5px;display:flex;align-items:flex-start;flex-wrap:wrap;gap:7px;overflow-wrap:anywhere;word-break:break-word;}
 .rc-row i{color:var(--p);width:15px;flex-shrink:0;font-size:12px;}
 .rc-row strong{color:var(--txt);font-weight:700;}
 .divider{height:1px;background:var(--border);margin:12px 0;}
@@ -633,6 +633,24 @@ body{min-height:100vh;}
 .emp-table td{font-size:12px;padding:10px 8px;border-bottom:1px solid var(--border);color:var(--txt);}
 .emp-table tr:hover td{background:var(--pxl);}
 .self-dot{display:inline-flex;align-items:center;gap:4px;background:var(--teal-l);color:var(--teal);border-radius:var(--rfull);padding:2px 8px;font-size:10px;font-weight:800;}
+.employee-summary-grid{display:grid;grid-template-columns:1fr;gap:10px;min-width:0;}
+.employee-summary-card{min-width:0;max-width:100%;padding:13px;border:1px solid var(--border);border-right:4px solid var(--blue);border-radius:15px;background:linear-gradient(135deg,#fff,#F7FBFF);box-shadow:var(--s1);overflow:hidden;}
+.employee-summary-head{display:flex;align-items:center;gap:10px;min-width:0;}
+.employee-summary-avatar{width:40px;height:40px;flex:0 0 40px;border-radius:12px;display:flex;align-items:center;justify-content:center;color:#fff;background:linear-gradient(135deg,var(--blue),#2E86C1);}
+.employee-summary-main{min-width:0;flex:1;}
+.employee-summary-name{font-size:14px;font-weight:900;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.employee-summary-code,.employee-summary-dept{font-size:11px;color:var(--txt3);margin-top:2px;max-width:100%;white-space:normal;overflow-wrap:anywhere;}
+.employee-summary-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-top:10px;padding-top:9px;border-top:1px dashed var(--border);}
+.employee-summary-stat{min-width:0;text-align:center;background:#F4F8FC;border-radius:9px;padding:5px 3px;font-size:12px;font-weight:900;color:var(--blue);}
+.employee-summary-stat small{display:block;font-size:9px;color:var(--txt3);font-weight:700;white-space:nowrap;}
+.rc-hd>div:last-child{min-width:0;max-width:100%;}
+.form-card,.card,.filter-box,.loan-target-card,.profile-banner{min-width:0;max-width:100%;}
+@media(max-width:360px){
+  .employee-summary-stats{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .loan-employee-meta span{flex:1 1 100%;}
+  .loan-employee-name{font-size:15px;}
+  .rc-row{font-size:12px;}
+}
 
 .self-banner{background:linear-gradient(135deg,var(--pxl),#FFF8F7);border:2px solid rgba(192,57,43,.15);border-radius:var(--r16);padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
 .self-av{width:48px;height:48px;border-radius:var(--r12);background:linear-gradient(135deg,var(--p),var(--pl));display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:var(--sp);}
@@ -1388,6 +1406,7 @@ var S={
   role:null,deptInfo:null,empInfo:null,
   dhEmps:[],dhFiltered:[],dhEmp:null,dhData:null,
   loanTargets:[],
+  loanPageCache:{},
   histAll:[],histKind:'all',
   selfData:null,medFile:null,empMedFile:null,
   serverDate:null,
@@ -1541,20 +1560,32 @@ function openRequests(){
   window.scrollTo(0,0);
   var content=document.querySelector('.content');if(content)content.scrollTop=0;
 }
-function openLoans(){
+function openLoans(forceRefresh){
   if(!S.role){toast('سجّل الدخول أولاً','wrn');return;}
   showOnly('v_loan');
-  _DOM('loan_page_msg',LOADING_HTML);
-  _DOM('loan_form','');
-  document.getElementById('loan_period_text').textContent='جاري تحميل فترة فتح السلف...';
   var actorCode=S.role==='employee'?(S.empInfo&&S.empInfo.code):(S.deptInfo&&S.deptInfo.code);
   var actorDept=S.role==='deptHead'?(S.deptInfo&&S.deptInfo.dept):'';
   var actorEmpCode=(S.role==='deptHead'||S.role==='manager')?(S.deptInfo&&S.deptInfo.empCode):'';
+  var cacheKey=[S.role,actorCode||'',actorDept||'',actorEmpCode||''].join('|');
+  var cached=S.loanPageCache&&S.loanPageCache[cacheKey];
+  if(cached&&!forceRefresh){
+    // اعرض آخر نتيجة فورًا، ثم حدّثها بصمت في الخلفية.
+    renderLoanPage(cached);
+  }else{
+    _DOM('loan_page_msg',LOADING_HTML);
+    _DOM('loan_form','');
+    document.getElementById('loan_period_text').textContent='جاري تحميل فترة فتح السلف...';
+  }
   // Loan data is a page read, not a submission. Keep the app interactive
   // and show the local placeholder instead of blocking the whole screen.
   google.script.run
-    .withSuccessHandler(function(res){renderLoanPage(res||{});})
-    .withFailureHandler(function(e){_DOM('loan_page_msg','<div class="loan-closed"><i class="fas fa-exclamation-circle"></i> تعذر تحميل صفحة السلف: '+e+'</div>');})
+    .withSuccessHandler(function(res){
+      S.loanPageCache[cacheKey]=res||{};
+      renderLoanPage(res||{});
+    })
+    .withFailureHandler(function(e){
+      if(!cached)_DOM('loan_page_msg','<div class="loan-closed"><i class="fas fa-exclamation-circle"></i> تعذر تحميل صفحة السلف: '+e+'</div>');
+    })
     .getLoanPageData(S.role,actorCode||'',actorDept||'',actorEmpCode||'');
 }
 function renderLoanPage(res){
@@ -1682,7 +1713,7 @@ function submitLoanFromPage(targetCode){
   var actorEmpCode=(S.role==='deptHead'||S.role==='manager')?(S.deptInfo&&S.deptInfo.empCode):'';
   loader(true);
   google.script.run
-    .withSuccessHandler(function(res){loader(false);if(res&&res.success){toast(res.message,'ok');openLoans();}else toast('❌ '+((res&&res.message)||'تعذر إرسال الطلب'),'err');})
+    .withSuccessHandler(function(res){loader(false);if(res&&res.success){toast(res.message,'ok');openLoans(true);}else toast('❌ '+((res&&res.message)||'تعذر إرسال الطلب'),'err');})
     .withFailureHandler(function(e){loader(false);toast('❌ '+e,'err');})
     .submitLoanRequest({actorRole:S.role,actorCode:actorCode||'',actorEmpCode:actorEmpCode||'',empCode:targetCode,amount:amount,notes:notes});
 }
@@ -1720,7 +1751,7 @@ function backToStep1(){showOnly('v_step1');document.getElementById('empCode').va
 function logout(){
   _nonce++;
   clearSession();
-  S={role:null,deptInfo:null,empInfo:null,dhEmps:[],dhFiltered:[],dhEmp:null,dhData:null,loanTargets:[],histAll:[],histKind:'all',selfData:null,medFile:null,empMedFile:null,serverDate:S.serverDate,officialHolidays:S.officialHolidays||[],empCancelLeaves:{}};
+  S={role:null,deptInfo:null,empInfo:null,dhEmps:[],dhFiltered:[],dhEmp:null,dhData:null,loanTargets:[],loanPageCache:{},histAll:[],histKind:'all',selfData:null,medFile:null,empMedFile:null,serverDate:S.serverDate,officialHolidays:S.officialHolidays||[],empCancelLeaves:{}};
   ['mgr_lv','mgr_pm','mgr_au','mgr_cancel','mgr_empTable','mgr_histList','mgr_selfContent',
    'dh_empList','dhp_lv','dhp_pm','dhp_au','dhp_approve','dhp_cancel'].forEach(function(id){_DOM(id,LOADING_HTML);});
   loader(false);
@@ -2719,13 +2750,31 @@ function renderDHEmpList(){
 
 function renderDHEmpTable(){
   var emps=S.dhEmps||[];
-  if(!emps.length){document.getElementById('dh_empTable').innerHTML='<div class="empty"><div class="empty-ico">👥</div><p>لا يوجد موظفون</p></div>';return;}
-  var h='<table class="emp-table"><tr><th>الاسم</th><th>الكود</th><th>الإدارة 1</th><th>ذاتي</th><th>اعتيادي</th><th>عارضه</th><th>مرضي</th></tr>';
-  emps.forEach(function(e){
-    h+='<tr><td>'+e.name+'</td><td>'+e.code+'</td><td>'+(e.admin2||'-')+'</td><td>'+(e.canSelfSubmit?'<span class="self-dot"><i class="fas fa-check"></i> ذاتي</span>':'-')+'</td><td>'+e.annual+'</td><td>'+e.casual+'</td><td>'+e.sick+'</td></tr>';
-  });
-  h+='</table>';
-  document.getElementById('dh_empTable').innerHTML=h;
+  document.getElementById('dh_empTable').innerHTML=renderEmployeeSummaryCards(emps,false);
+}
+
+function renderEmployeeSummaryCards(emps,managerMode){
+  if(!emps||!emps.length)return '<div class="empty"><div class="empty-ico">👥</div><p>لا يوجد موظفون</p></div>';
+  return '<div class="employee-summary-grid">'+emps.map(function(e){
+    var admin=managerMode?(e.admin||e.admin2||''):((e.admin2||e.admin||''));
+    return '<div class="employee-summary-card">'+
+      '<div class="employee-summary-head">'+
+        '<div class="employee-summary-avatar"><i class="fas fa-user"></i></div>'+
+        '<div class="employee-summary-main">'+
+          '<div class="employee-summary-name">'+loanEsc(e.name||'بدون اسم')+'</div>'+
+          '<div class="employee-summary-code"><i class="fas fa-id-badge"></i> '+loanEsc(e.code||'—')+'</div>'+
+          '<div class="employee-summary-dept"><i class="fas fa-sitemap"></i> '+loanEsc(e.dept||admin||'—')+'</div>'+
+        '</div>'+
+        (e.canSelfSubmit?'<span class="self-dot"><i class="fas fa-check"></i> ذاتي</span>':'')+
+      '</div>'+
+      '<div class="employee-summary-stats">'+
+        '<div class="employee-summary-stat">'+loanEsc(e.annual||0)+'<small>اعتيادي</small></div>'+
+        '<div class="employee-summary-stat">'+loanEsc(e.casual||0)+'<small>عارضة</small></div>'+
+        '<div class="employee-summary-stat">'+loanEsc(e.sick||0)+'<small>مرضي</small></div>'+
+        '<div class="employee-summary-stat">'+loanEsc(e.restComp||0)+'<small>بدل راحة</small></div>'+
+      '</div>'+
+    '</div>';
+  }).join('')+'</div>';
 }
 
 function selectDHEmp(code){
@@ -3516,13 +3565,7 @@ function showMgrTab(n){
 }
 
 function renderMgrEmpTable(emps){
-  if(!emps.length){document.getElementById('mgr_empTable').innerHTML='<div class="empty"><div class="empty-ico">👥</div><p>لا يوجد موظفون</p></div>';return;}
-  var h='<table class="emp-table"><tr><th>الاسم</th><th>القسم</th><th>الإدارة</th><th>ذاتي</th><th>اعتيادي</th><th>عارضه</th><th>مرضي</th><th>بدل راحه</th></tr>';
-  emps.forEach(function(e){
-    h+='<tr><td>'+e.name+'</td><td>'+(e.dept||'—')+'</td><td>'+(e.admin||'-')+'</td><td>'+(e.canSelfSubmit?'<span class="self-dot"><i class="fas fa-check"></i> ذاتي</span>':'-')+'</td><td>'+e.annual+'</td><td>'+e.casual+'</td><td>'+e.sick+'</td><td>'+(e.restComp||0)+'</td></tr>';
-  });
-  h+='</table>';
-  document.getElementById('mgr_empTable').innerHTML=h;
+  document.getElementById('mgr_empTable').innerHTML=renderEmployeeSummaryCards(emps,true);
 }
 
 function renderMgrLeaves(list){
