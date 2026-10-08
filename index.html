@@ -1916,6 +1916,10 @@ function renderEmpHistStatic(){
 
 function loadEmpHist(){
   google.script.run.withSuccessHandler(function(res){document.getElementById('emp_hist_tab').innerHTML=renderHistItems(res);})
+    .withFailureHandler(function(e){
+      var msg=e&&e.message?e.message:String(e||'خطأ غير معروف');
+      _DOM('emp_hist_tab','<div class="empty"><div class="empty-ico"><i class="fas fa-exclamation-circle"></i></div><p>تعذر تحميل السجل: '+loanEsc(msg)+'</p><button class="btn btn-primary" onclick="loadEmpHist()">إعادة المحاولة</button></div>');
+    })
     .getEmployeeFullHistory(S.empInfo.code,true);
 }
 
@@ -2710,7 +2714,8 @@ function loadDHData(){
     .withFailureHandler(function(e){
       S.dhDataLoaded=false;
       if(myNonce!==_nonce)return;
-      _DOM('dh_empList','<div class="empty"><i class="fas fa-wifi"></i> تعذّر الاتصال <br><button class="btn btn-primary" style="margin-top:10px;" onclick="loadDHData()"><i class="fas fa-redo"></i> إعادة المحاولة</button></div>');
+      var msg=e&&e.message?e.message:String(e||'خطأ غير معروف');
+      _DOM('dh_empList','<div class="empty"><i class="fas fa-wifi"></i> تعذّر تحميل البيانات: '+loanEsc(msg)+' <br><button class="btn btn-primary" style="margin-top:10px;" onclick="loadDHData()"><i class="fas fa-redo"></i> إعادة المحاولة</button></div>');
     })
     .getDeptHeadData(S.deptInfo.dept);
 }
@@ -3553,7 +3558,8 @@ function loadMgrData(code){
     .withFailureHandler(function(e){
       if(myNonce!==_nonce)return;
       var rb='<button class="btn btn-primary" style="margin-top:12px;" onclick="loadMgrData(\''+code+'\')"><i class="fas fa-redo"></i> إعادة المحاولة</button>';
-      _DOM('mgr_lv','<div class="empty"><div class="empty-ico"><i class="fas fa-wifi"></i></div><p>تعذّر الاتصال</p>'+rb+'</div>');
+      var msg=e&&e.message?e.message:String(e||'خطأ غير معروف');
+      _DOM('mgr_lv','<div class="empty"><div class="empty-ico"><i class="fas fa-wifi"></i></div><p>تعذّر تحميل البيانات: '+loanEsc(msg)+'</p>'+rb+'</div>');
     })
     .getManagerData(code);
 }
