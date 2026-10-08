@@ -1554,7 +1554,7 @@ function goHome(){
 }
 function openRequests(){
   if(S.role==='employee')showOnly('v_emp');
-  else if(S.role==='deptHead'){showOnly('v_dh');loadDHEmployeesFast();loadDHData();}
+  else if(S.role==='deptHead'){showOnly('v_dh');loadDHData();}
   else if(S.role==='manager')showOnly('v_mgr');
   else showOnly('v_step1');
   window.scrollTo(0,0);
@@ -1803,7 +1803,7 @@ function empRefreshBal(showLoading){
   google.script.run
     .withSuccessHandler(function(res){
       if(showLoading===true)loader(false);
-      if(!res.success){toast('❌ فشل التحديث','err');return;}
+      if(!res.success){toast('❌ '+(res.message||'فشل التحديث'),'err');return;}
       S.empInfo.annual      = res.annual;
       S.empInfo.annualLim   = res.annualLim;
       S.empInfo.casual      = res.casual;
@@ -1837,7 +1837,11 @@ function empRefreshBal(showLoading){
       }
       toast('✅ تم تحديث الرصيد','ok');
     })
-    .withFailureHandler(function(e){if(showLoading===true)loader(false);toast('❌ '+e,'err');})
+    .withFailureHandler(function(e){
+      if(showLoading===true)loader(false);
+      var msg=e&&e.message?e.message:String(e||'خطأ غير معروف');
+      toast('❌ '+msg,'err');
+    })
     .refreshEmployeeBalance(S.empInfo.code);
 }
 
@@ -1905,12 +1909,18 @@ function renderEmpBal(d,quotaData){
     document.getElementById('emp_quota').innerHTML=
       '<div class="quota-cell'+(q.permissionRemaining===0?' warn':'')+'"><div class="quota-val">'+q.permissionRemaining+'</div><div class="quota-lbl"><i class="fas fa-handshake"></i> إذن متبقي هذا الشهر</div></div>'+
       '<div class="quota-cell'+(q.authorizationRemaining===0?' warn':'')+'"><div class="quota-val">'+q.authorizationRemaining+'</div><div class="quota-lbl"><i class="fas fa-id-card"></i> تصريح متبقي هذا الشهر</div></div>';
+  }).withFailureHandler(function(e){
+    var msg=e&&e.message?e.message:String(e||'خطأ غير معروف');
+    _DOM('emp_quota','<div class="empty">تعذر تحميل رصيد الإذن والتصريح: '+loanEsc(msg)+'</div>');
   }).getPermissionCount(S.empInfo.code);
 }
 
 function renderEmpHistStatic(){
   google.script.run.withSuccessHandler(function(res){document.getElementById('emp_hist').innerHTML=renderHistItems(res);})
-    .withFailureHandler(function(e){toast('❌ '+e,'err');})
+    .withFailureHandler(function(e){
+      var msg=e&&e.message?e.message:String(e||'خطأ غير معروف');
+      _DOM('emp_hist','<div class="empty">تعذر تحميل السجل: '+loanEsc(msg)+'</div>');
+    })
     .getEmployeeFullHistory(S.empInfo.code,true);
 }
 
@@ -2697,7 +2707,8 @@ function loadDHData(){
       if(myNonce!==_nonce)return;
       if(!res.success){
         S.dhDataLoaded=false;
-        _DOM('dh_empList','<div class="empty"><i class="fas fa-exclamation-circle"></i> خطأ في تحميل البيانات <br><button class="btn btn-primary" style="margin-top:10px;" onclick="loadDHData()"><i class="fas fa-redo"></i> إعادة المحاولة</button></div>');
+        var msg=res.message||'خطأ في تحميل البيانات';
+        _DOM('dh_empList','<div class="empty"><i class="fas fa-exclamation-circle"></i> تعذر تحميل البيانات: '+loanEsc(msg)+' <br><button class="btn btn-primary" style="margin-top:10px;" onclick="loadDHData()"><i class="fas fa-redo"></i> إعادة المحاولة</button></div>');
         return;
       }
       S.dhData=res;
@@ -3545,7 +3556,8 @@ function loadMgrData(code){
       if(myNonce!==_nonce)return;
       if(!res.success){
         var rb='<button class="btn btn-primary" style="margin-top:12px;" onclick="loadMgrData(\''+code+'\')"><i class="fas fa-redo"></i> إعادة المحاولة</button>';
-        _DOM('mgr_lv','<div class="empty"><div class="empty-ico"><i class="fas fa-exclamation-circle"></i></div><p>خطأ في تحميل البيانات</p>'+rb+'</div>');
+        var msg=res.message||'خطأ في تحميل البيانات';
+        _DOM('mgr_lv','<div class="empty"><div class="empty-ico"><i class="fas fa-exclamation-circle"></i></div><p>تعذر تحميل البيانات: '+loanEsc(msg)+'</p>'+rb+'</div>');
         return;
       }
       S.mgrData=res;
@@ -3696,7 +3708,7 @@ function actCancelMgr(row,status,btn){
 /* MGR HISTORY */
 function loadMgrHistory(){
   if(!S.deptInfo)return;
-  google.script.run.withSuccessHandler(function(res){if(!res.success){toast('❌ خطأ','err');return;}S.histAll=res.list||[];filterMgrHistory();}).withFailureHandler(function(e){toast('❌ '+e,'err');}).getManagerHistory(S.deptInfo.code);
+  google.script.run.withSuccessHandler(function(res){if(!res.success){toast('❌ '+(res.message||'تعذر تحميل السجل'),'err');return;}S.histAll=res.list||[];filterMgrHistory();}).withFailureHandler(function(e){toast('❌ '+(e&&e.message?e.message:e),'err');}).getManagerHistory(S.deptInfo.code);
 }
 function setHistKind(kind){
   S.histKind=kind;
@@ -3782,10 +3794,18 @@ function loadSelfData(empCode, role){
   google.script.run
     .withSuccessHandler(function(res){
       if(!res||!res.found){
+        if(res&&res.message){
+          _DOM(role+'_selfContent','<div class="empty">تعذر تحميل بيانات الحساب: '+loanEsc(res.message)+'<br><button class="btn btn-primary" onclick="loadSelfData(S.deptInfo.empCode, \''+role+'\')">إعادة المحاولة</button></div>');
+          return;
+        }
         _DOM(role+'_selfContent', noEmpCodeGuide());return;
       }
       S.selfData=res;
       renderSelfPanel(role,res);
+    })
+    .withFailureHandler(function(e){
+      var msg=e&&e.message?e.message:String(e||'خطأ غير معروف');
+      _DOM(role+'_selfContent','<div class="empty">تعذر تحميل بيانات الحساب: '+loanEsc(msg)+'<br><button class="btn btn-primary" onclick="loadSelfData(S.deptInfo.empCode, \''+role+'\')">إعادة المحاولة</button></div>');
     })
     .getSelfData(empCode);
 }
