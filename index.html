@@ -550,6 +550,15 @@ body{min-height:100vh;max-width:100vw;}
 .file-zone span{font-size:12px;color:var(--txt2);font-weight:700;}
 .file-zone.ok{border-color:var(--green);background:var(--green-l);}
 .file-zone.ok i,.file-zone.ok span{color:var(--green);}
+.med-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.med-btn{border:2px dashed var(--border2);border-radius:var(--r12);padding:16px 8px;text-align:center;cursor:pointer;background:var(--card2);font-family:'Cairo',sans-serif;transition:all .22s;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--txt2);}
+.med-btn i{font-size:26px;color:var(--p);}
+.med-btn span{font-size:12px;font-weight:800;}
+.med-btn:hover,.med-btn:active{border-color:var(--p);background:var(--pxl);}
+.med-status{display:none;margin-top:10px;padding:10px 12px;border-radius:var(--r8);font-size:12px;font-weight:800;align-items:center;gap:8px;word-break:break-all;}
+.med-status.show{display:flex;}
+.med-status.ok{background:var(--green-l);border:1px solid #A9DFBF;color:#1E8449;}
+.med-status.busy{background:var(--blue-l);border:1px solid #AED6F1;color:var(--blue);}
 
 .dur-box{background:var(--green-l);border:1px solid #A9DFBF;border-radius:var(--r8);padding:12px;text-align:center;font-weight:800;font-size:13px;color:#1E8449;display:none;margin-bottom:12px;}
 .dur-box.err{background:#FDEDEC;border-color:#F1948A;color:#922B21;}
@@ -1020,8 +1029,13 @@ body::before{content:'';position:fixed;inset:0;
       <div id="emp_notePanel" class="alert alert-orange"><i class="fas fa-info-circle"></i><span></span></div>
       <div id="emp_medGrp" style="display:none;margin-bottom:14px;">
         <div class="fg" style="margin-bottom:6px;"><label><i class="fas fa-file-medical"></i> الشهادة الطبية <span class="req-star">*</span></label></div>
-        <div class="file-zone" onclick="document.getElementById('emp_medFile').click()"><i class="fas fa-cloud-upload-alt"></i><span>اضغط لرفع صورة أو PDF (حد 5MB)</span></div>
-        <input type="file" id="emp_medFile" accept="image/*,application/pdf" style="display:none;" onchange="empFileChange()">
+        <div class="med-pick">
+          <button type="button" class="med-btn cam" onclick="document.getElementById('emp_medCam').click()"><i class="fas fa-camera"></i><span>التقاط صورة</span></button>
+          <button type="button" class="med-btn gal" onclick="document.getElementById('emp_medFile').click()"><i class="fas fa-images"></i><span>من المعرض / ملف</span></button>
+        </div>
+        <div class="med-status" id="emp_medStatus"></div>
+        <input type="file" id="emp_medCam" accept="image/*" capture="environment" style="display:none;" onchange="empFileChange(this)">
+        <input type="file" id="emp_medFile" accept="image/*,application/pdf" style="display:none;" onchange="empFileChange(this)">
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="fg" style="margin-bottom:0;"><label><i class="fas fa-calendar"></i> من</label><input type="date" id="emp_sd" onchange="empValLv()"></div>
@@ -1208,8 +1222,13 @@ body::before{content:'';position:fixed;inset:0;
         <div id="dh_notePanel" class="alert alert-orange"><i class="fas fa-info-circle"></i><span></span></div>
         <div id="dh_medGrp" style="display:none;margin-bottom:14px;">
           <div class="fg" style="margin-bottom:6px;"><label><i class="fas fa-file-medical"></i> الشهادة الطبية <span class="req-star">*</span></label></div>
-          <div class="file-zone" onclick="document.getElementById('dh_medFile').click()"><i class="fas fa-cloud-upload-alt"></i><span>اضغط لرفع صورة أو PDF (حد 5MB)</span></div>
-          <input type="file" id="dh_medFile" accept="image/*,application/pdf" style="display:none;" onchange="dhFileChange()">
+          <div class="med-pick">
+            <button type="button" class="med-btn cam" onclick="document.getElementById('dh_medCam').click()"><i class="fas fa-camera"></i><span>التقاط صورة</span></button>
+            <button type="button" class="med-btn gal" onclick="document.getElementById('dh_medFile').click()"><i class="fas fa-images"></i><span>من المعرض / ملف</span></button>
+          </div>
+          <div class="med-status" id="dh_medStatus"></div>
+          <input type="file" id="dh_medCam" accept="image/*" capture="environment" style="display:none;" onchange="dhFileChange(this)">
+          <input type="file" id="dh_medFile" accept="image/*,application/pdf" style="display:none;" onchange="dhFileChange(this)">
         </div>
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
           <div class="fg" style="margin-bottom:0;"><label><i class="fas fa-calendar"></i> من</label><input type="date" id="dh_sd" onchange="dhValLv()"></div>
@@ -1942,7 +1961,7 @@ function empValLv(){
   if(dm){dm.className='dmsg';dm.textContent='';}
   var isMedExempt=d&&d.medExempt;
   if(mg)mg.style.display=(lt==='مرضي'&&!isMedExempt)?'block':'none';
-  if(lt!=='مرضي')S.empMedFile=null;
+  if(lt!=='مرضي'){S.empMedFile=null;medClearStatus('emp_');}
   if(lt&&d){
     var map={"اعتيادي":d.annual,"عارضه":d.casual,"بدون اجر":d.noPay,"راحه":d.rest,"مرضي":d.sick,"زواج":d.wedding,"وفاة":d.death,"باجر":d.paid,"بدل راحه":d.restComp||0};
     var av=map[lt]||0;
@@ -1968,15 +1987,58 @@ function empValLv(){
   if(btn)btn.disabled=!lt2||(lt2==='مرضي'&&!em2?!mf2:false);
 }
 
-function empFileChange(){
-  var fi=document.getElementById('emp_medFile'),z=document.querySelector('#emp_medGrp .file-zone');
-  if(fi&&fi.files.length>0){
-    var f=fi.files[0];
-    if(f.size>5*1024*1024){toast('❌ الملف أكبر من 5MB','err');fi.value='';S.empMedFile=null;return;}
-    S.empMedFile=f;
-    if(z){z.classList.add('ok');z.innerHTML='<i class="fas fa-check-circle"></i><span>'+f.name+'</span>';}
-    empValLv();
-  }
+/* ═══ رفع الشهادة الطبية: كاميرا أو معرض/ملف ═══ */
+function medSetStatus(p,kind,html){
+  var el=document.getElementById(p+'medStatus');if(!el)return;
+  if(!kind){el.className='med-status';el.innerHTML='';return;}
+  el.className='med-status show '+kind;el.innerHTML=html;
+}
+function medClearStatus(p){
+  medSetStatus(p,'','');
+  ['medFile','medCam'].forEach(function(n){var i=document.getElementById(p+n);if(i)i.value='';});
+}
+// يصغّر صور الكاميرا (غالباً أكبر من 5MB) إلى JPEG أقل حجماً قبل الرفع
+function medCompressImage(file,cb){
+  try{
+    if(!file.type||file.type.indexOf('image/')!==0||file.type==='image/gif'){cb(file);return;}
+    var url=URL.createObjectURL(file),img=new Image();
+    img.onload=function(){
+      try{
+        var max=1600,w=img.naturalWidth,h=img.naturalHeight;
+        if(!w||!h){URL.revokeObjectURL(url);cb(file);return;}
+        var r=Math.min(1,max/Math.max(w,h));
+        var cw=Math.round(w*r),ch=Math.round(h*r);
+        var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
+        var cx=cv.getContext('2d');cx.fillStyle='#fff';cx.fillRect(0,0,cw,ch);cx.drawImage(img,0,0,cw,ch);
+        URL.revokeObjectURL(url);
+        cv.toBlob(function(blob){
+          if(!blob){cb(file);return;}
+          var base=(file.name||'cert').replace(/\.[^.]+$/,'');
+          try{cb(new File([blob],base+'.jpg',{type:'image/jpeg'}));}catch(e){cb(file);}
+        },'image/jpeg',0.8);
+      }catch(e){URL.revokeObjectURL(url);cb(file);}
+    };
+    img.onerror=function(){URL.revokeObjectURL(url);cb(file);};
+    img.src=url;
+  }catch(e){cb(file);}
+}
+function medHandlePick(inp,p,setFile,done){
+  if(!inp||!inp.files||!inp.files.length)return;
+  var f=inp.files[0];
+  medSetStatus(p,'busy','<i class="fas fa-spinner fa-spin"></i> جاري تجهيز الملف...');
+  medCompressImage(f,function(out){
+    if(out.size>5*1024*1024){
+      toast('❌ الملف أكبر من 5MB','err');setFile(null);medClearStatus(p);return;
+    }
+    setFile(out);
+    medSetStatus(p,'ok','<i class="fas fa-check-circle"></i> تم اختيار: '+out.name+' ('+Math.max(1,Math.round(out.size/1024))+' KB)');
+    inp.value='';
+    if(done)done();
+  });
+}
+
+function empFileChange(inp){
+  medHandlePick(inp,'emp_',function(f){S.empMedFile=f;},empValLv);
 }
 
 function empSubmitLv(){
@@ -2834,9 +2896,7 @@ function resetDHForm(){
   ['dh_lvBtn','dh_pmBtn','dh_auBtn'].forEach(function(id){var b=document.getElementById(id);if(b)b.disabled=true;});
   ['dh_balPanel','dh_notePanel'].forEach(function(id){var el=document.getElementById(id);if(el)el.classList.remove('show');});
   var dg=document.getElementById('dh_medGrp');if(dg)dg.style.display='none';S.medFile=null;
-  var fz=document.querySelector('#dh_medGrp .file-zone');
-  if(fz){fz.classList.remove('ok');fz.innerHTML='<i class="fas fa-cloud-upload-alt"></i><span>اضغط لرفع صورة أو PDF (حد 5MB)</span>';}
-  var fi=document.getElementById('dh_medFile');if(fi)fi.value='';
+  medClearStatus('dh_');
   ['oH','oM','oP','rH','rM','rP'].forEach(function(id){var el=document.getElementById(id);if(el)el.selectedIndex=0;});
   var db=document.getElementById('dh_durBox');if(db)db.style.display='none';
   var pmhb=document.getElementById('dh_pmHoursBox');if(pmhb)pmhb.style.display='none';
@@ -3406,7 +3466,7 @@ function dhValLv(){
   if(dm){dm.className='dmsg';dm.textContent='';}
   var isMedExempt=emp&&emp.medExempt;
   if(mg)mg.style.display=(lt==='مرضي'&&!isMedExempt)?'block':'none';
-  if(lt!=='مرضي')S.medFile=null;
+  if(lt!=='مرضي'){S.medFile=null;medClearStatus('dh_');}
   if(lt){
     var map={"اعتيادي":emp.annual,"عارضه":emp.casual,"بدون اجر":emp.noPay,"راحه":emp.rest,"مرضي":emp.sick,"زواج":emp.wedding,"وفاة":emp.death,"باجر":emp.paid,"بدل راحه":emp.restComp||0};
     var av=map[lt]||0;
@@ -3431,16 +3491,8 @@ function dhValLv(){
   if(btn)btn.disabled=!lt||(lt==='مرضي'&&!isMedExempt?!S.medFile:false);
 }
 
-function dhFileChange(){
-  var fi=document.getElementById('dh_medFile');
-  var z=document.querySelector('#dh_medGrp .file-zone');
-  if(fi&&fi.files.length>0){
-    var f=fi.files[0];
-    if(f.size>5*1024*1024){toast('❌ الملف أكبر من 5MB','err');fi.value='';S.medFile=null;return;}
-    S.medFile=f;
-    if(z){z.classList.add('ok');z.innerHTML='<i class="fas fa-check-circle"></i><span>'+f.name+'</span>';}
-    dhValLv();
-  }
+function dhFileChange(inp){
+  medHandlePick(inp,'dh_',function(f){S.medFile=f;},dhValLv);
 }
 
 function dhSubmitLv(){
@@ -3838,8 +3890,12 @@ function renderSelfPanel(role,d){
     '<div id="'+pfx+'balPanel" class="alert alert-blue"><i class="fas fa-wallet"></i><span></span></div>'+
     '<div id="'+pfx+'notePanel" class="alert alert-orange"><i class="fas fa-info-circle"></i><span></span></div>'+
     '<div id="'+pfx+'medGrp" style="display:none;margin-bottom:14px;"><div class="fg" style="margin-bottom:6px;"><label><i class="fas fa-file-medical"></i> الشهادة الطبية <span class="req-star">*</span></label></div>'+
-    '<div class="file-zone" onclick="document.getElementById(\''+pfx+'medFile\').click()"><i class="fas fa-cloud-upload-alt"></i><span>اضغط لرفع صورة أو PDF</span></div>'+
-    '<input type="file" id="'+pfx+'medFile" accept="image/*,application/pdf" style="display:none;" onchange="selfFileChange(\''+role+'\')"></div>'+
+    '<div class="med-pick">'+
+    '<button type="button" class="med-btn cam" onclick="document.getElementById(\''+pfx+'medCam\').click()"><i class="fas fa-camera"></i><span>التقاط صورة</span></button>'+
+    '<button type="button" class="med-btn gal" onclick="document.getElementById(\''+pfx+'medFile\').click()"><i class="fas fa-images"></i><span>من المعرض / ملف</span></button>'+
+    '</div><div class="med-status" id="'+pfx+'medStatus"></div>'+
+    '<input type="file" id="'+pfx+'medCam" accept="image/*" capture="environment" style="display:none;" onchange="selfFileChange(this,\''+role+'\')">'+
+    '<input type="file" id="'+pfx+'medFile" accept="image/*,application/pdf" style="display:none;" onchange="selfFileChange(this,\''+role+'\')"></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+
     '<div class="fg" style="margin-bottom:0;"><label><i class="fas fa-calendar"></i> من</label><input type="date" id="'+pfx+'sd" onchange="selfValLv(\''+role+'\')"></div>'+
     '<div class="fg" style="margin-bottom:0;"><label><i class="fas fa-calendar-check"></i> إلى</label><input type="date" id="'+pfx+'ed" onchange="selfValLv(\''+role+'\')"></div>'+
@@ -4262,7 +4318,7 @@ function selfValLv(role){
   if(dm){dm.className='dmsg';dm.textContent='';}
   var isMedExempt=d&&d.medExempt;
   if(mg)mg.style.display=(lt==='مرضي'&&!isMedExempt)?'block':'none';
-  if(lt!=='مرضي')S.medFile=null;
+  if(lt!=='مرضي'){S.medFile=null;medClearStatus(pfx);}
   if(lt&&d){
     var map={"اعتيادي":d.annual,"عارضه":d.casual,"بدون اجر":d.noPay,"راحه":d.rest,"مرضي":d.sick,"زواج":d.wedding,"وفاة":d.death,"باجر":d.paid,"بدل راحه":d.restComp||0};
     var av=map[lt]||0;
@@ -4287,15 +4343,9 @@ function selfValLv(role){
   btn.disabled=!lt||(lt==='مرضي'&&!isMedExempt?!S.medFile:false);
 }
 
-function selfFileChange(role){
-  var pfx=role+'_self_';var fi=document.getElementById(pfx+'medFile');var z=document.querySelector('#'+pfx+'medGrp .file-zone');
-  if(fi&&fi.files.length>0){
-    var f=fi.files[0];
-    if(f.size>5*1024*1024){toast('❌ الملف أكبر من 5MB','err');fi.value='';return;}
-    S.medFile=f;
-    if(z){z.classList.add('ok');z.innerHTML='<i class="fas fa-check-circle"></i><span>'+f.name+'</span>';}
-    selfValLv(role);
-  }
+function selfFileChange(inp,role){
+  var pfx=role+'_self_';
+  medHandlePick(inp,pfx,function(f){S.medFile=f;},function(){selfValLv(role);});
 }
 
 function selfSubmitLv(role){
