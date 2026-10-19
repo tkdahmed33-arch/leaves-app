@@ -550,11 +550,14 @@ body{min-height:100vh;max-width:100vw;}
 .file-zone span{font-size:12px;color:var(--txt2);font-weight:700;}
 .file-zone.ok{border-color:var(--green);background:var(--green-l);}
 .file-zone.ok i,.file-zone.ok span{color:var(--green);}
-.med-pick{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.med-btn{border:2px dashed var(--border2);border-radius:var(--r12);padding:16px 8px;text-align:center;cursor:pointer;background:var(--card2);font-family:'Cairo',sans-serif;transition:all .22s;display:flex;flex-direction:column;align-items:center;gap:6px;color:var(--txt2);}
-.med-btn i{font-size:26px;color:var(--p);}
-.med-btn span{font-size:12px;font-weight:800;}
-.med-btn:hover,.med-btn:active{border-color:var(--p);background:var(--pxl);}
+.med-sheet-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:950;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);}
+.med-sheet-ov.show{display:flex;}
+.med-sheet{width:100%;max-width:500px;background:#fff;border-radius:22px 22px 0 0;padding:18px 18px 22px;box-shadow:0 -10px 40px rgba(0,0,0,.2);animation:fadeUp .25s ease;}
+.med-sheet-title{font-size:15px;font-weight:900;color:var(--txt);text-align:center;margin-bottom:14px;}
+.med-sheet button{width:100%;display:flex;align-items:center;gap:12px;padding:15px 16px;margin-bottom:10px;border:1.5px solid var(--border);border-radius:14px;background:var(--card2);font-family:'Cairo',sans-serif;font-size:15px;font-weight:800;color:var(--txt);cursor:pointer;}
+.med-sheet button i{font-size:22px;color:var(--p);width:28px;text-align:center;}
+.med-sheet button:active{background:var(--pxl);border-color:var(--p);}
+.med-sheet button.cancel{justify-content:center;color:var(--txt2);margin-bottom:0;}
 .med-status{display:none;margin-top:10px;padding:10px 12px;border-radius:var(--r8);font-size:12px;font-weight:800;align-items:center;gap:8px;word-break:break-all;}
 .med-status.show{display:flex;}
 .med-status.ok{background:var(--green-l);border:1px solid #A9DFBF;color:#1E8449;}
@@ -833,6 +836,13 @@ body::before{content:'';position:fixed;inset:0;
 .spinner{width:46px;height:46px;border-width:3.5px;}
 
   .dur-box.night { background:#1a1a2e; color:#a29bfe; border-color:#6c5ce7; }
+
+/* ── إصلاح حقول التاريخ/الوقت داخل WebView ── */
+div[style*="grid-template-columns:1fr 1fr"]{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important;}
+div[style*="grid-template-columns:1fr 1fr"]>*{min-width:0;}
+input[type="date"],input[type="time"]{direction:ltr;text-align:center;min-width:0;max-width:100%;width:100%;display:block;}
+input[type="date"]::-webkit-datetime-edit,input[type="time"]::-webkit-datetime-edit{direction:ltr;unicode-bidi:isolate;}
+
   </style>
 <script>
 /* GitHub Pages adapter: keep the original google.script.run calls unchanged. */
@@ -1029,10 +1039,7 @@ body::before{content:'';position:fixed;inset:0;
       <div id="emp_notePanel" class="alert alert-orange"><i class="fas fa-info-circle"></i><span></span></div>
       <div id="emp_medGrp" style="display:none;margin-bottom:14px;">
         <div class="fg" style="margin-bottom:6px;"><label><i class="fas fa-file-medical"></i> الشهادة الطبية <span class="req-star">*</span></label></div>
-        <div class="med-pick">
-          <button type="button" class="med-btn cam" onclick="document.getElementById('emp_medCam').click()"><i class="fas fa-camera"></i><span>التقاط صورة</span></button>
-          <button type="button" class="med-btn gal" onclick="document.getElementById('emp_medFile').click()"><i class="fas fa-images"></i><span>من المعرض / ملف</span></button>
-        </div>
+        <div class="file-zone" onclick="medOpenChooser('emp_')"><i class="fas fa-cloud-upload-alt"></i><span>اضغط لرفع صورة أو PDF (حد 5MB)</span></div>
         <div class="med-status" id="emp_medStatus"></div>
         <input type="file" id="emp_medCam" accept="image/*" capture="environment" style="display:none;" onchange="empFileChange(this)">
         <input type="file" id="emp_medFile" accept="image/*,application/pdf" style="display:none;" onchange="empFileChange(this)">
@@ -1222,10 +1229,7 @@ body::before{content:'';position:fixed;inset:0;
         <div id="dh_notePanel" class="alert alert-orange"><i class="fas fa-info-circle"></i><span></span></div>
         <div id="dh_medGrp" style="display:none;margin-bottom:14px;">
           <div class="fg" style="margin-bottom:6px;"><label><i class="fas fa-file-medical"></i> الشهادة الطبية <span class="req-star">*</span></label></div>
-          <div class="med-pick">
-            <button type="button" class="med-btn cam" onclick="document.getElementById('dh_medCam').click()"><i class="fas fa-camera"></i><span>التقاط صورة</span></button>
-            <button type="button" class="med-btn gal" onclick="document.getElementById('dh_medFile').click()"><i class="fas fa-images"></i><span>من المعرض / ملف</span></button>
-          </div>
+          <div class="file-zone" onclick="medOpenChooser('dh_')"><i class="fas fa-cloud-upload-alt"></i><span>اضغط لرفع صورة أو PDF (حد 5MB)</span></div>
           <div class="med-status" id="dh_medStatus"></div>
           <input type="file" id="dh_medCam" accept="image/*" capture="environment" style="display:none;" onchange="dhFileChange(this)">
           <input type="file" id="dh_medFile" accept="image/*,application/pdf" style="display:none;" onchange="dhFileChange(this)">
@@ -1987,6 +1991,33 @@ function empValLv(){
   if(btn)btn.disabled=!lt2||(lt2==='مرضي'&&!em2?!mf2:false);
 }
 
+/* ═══ نافذة اختيار: كاميرا أو استوديو ═══ */
+function medOpenChooser(p){
+  var ov=document.getElementById('medChooser');
+  if(!ov){
+    ov=document.createElement('div');ov.id='medChooser';ov.className='med-sheet-ov';
+    ov.innerHTML='<div class="med-sheet">'+
+      '<div class="med-sheet-title">إرفاق الشهادة الطبية</div>'+
+      '<button type="button" onclick="medChoose(\'cam\')"><i class="fas fa-camera"></i> التقاط صورة بالكاميرا</button>'+
+      '<button type="button" onclick="medChoose(\'gal\')"><i class="fas fa-images"></i> اختيار من الاستوديو / ملفات</button>'+
+      '<button type="button" class="cancel" onclick="medCloseChooser()">إلغاء</button>'+
+      '</div>';
+    ov.addEventListener('click',function(e){if(e.target===ov)medCloseChooser();});
+    document.body.appendChild(ov);
+  }
+  ov.setAttribute('data-p',p);
+  ov.classList.add('show');
+}
+function medCloseChooser(){
+  var ov=document.getElementById('medChooser');if(ov)ov.classList.remove('show');
+}
+function medChoose(kind){
+  var ov=document.getElementById('medChooser');if(!ov)return;
+  var p=ov.getAttribute('data-p')||'';
+  medCloseChooser();
+  var inp=document.getElementById(p+(kind==='cam'?'medCam':'medFile'));
+  if(inp)inp.click();
+}
 /* ═══ رفع الشهادة الطبية: كاميرا أو معرض/ملف ═══ */
 function medSetStatus(p,kind,html){
   var el=document.getElementById(p+'medStatus');if(!el)return;
@@ -3890,10 +3921,8 @@ function renderSelfPanel(role,d){
     '<div id="'+pfx+'balPanel" class="alert alert-blue"><i class="fas fa-wallet"></i><span></span></div>'+
     '<div id="'+pfx+'notePanel" class="alert alert-orange"><i class="fas fa-info-circle"></i><span></span></div>'+
     '<div id="'+pfx+'medGrp" style="display:none;margin-bottom:14px;"><div class="fg" style="margin-bottom:6px;"><label><i class="fas fa-file-medical"></i> الشهادة الطبية <span class="req-star">*</span></label></div>'+
-    '<div class="med-pick">'+
-    '<button type="button" class="med-btn cam" onclick="document.getElementById(\''+pfx+'medCam\').click()"><i class="fas fa-camera"></i><span>التقاط صورة</span></button>'+
-    '<button type="button" class="med-btn gal" onclick="document.getElementById(\''+pfx+'medFile\').click()"><i class="fas fa-images"></i><span>من المعرض / ملف</span></button>'+
-    '</div><div class="med-status" id="'+pfx+'medStatus"></div>'+
+    '<div class="file-zone" onclick="medOpenChooser(\''+pfx+'\')"><i class="fas fa-cloud-upload-alt"></i><span>اضغط لرفع صورة أو PDF (حد 5MB)</span></div>'+
+    '<div class="med-status" id="'+pfx+'medStatus"></div>'+
     '<input type="file" id="'+pfx+'medCam" accept="image/*" capture="environment" style="display:none;" onchange="selfFileChange(this,\''+role+'\')">'+
     '<input type="file" id="'+pfx+'medFile" accept="image/*,application/pdf" style="display:none;" onchange="selfFileChange(this,\''+role+'\')"></div>'+
     '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">'+
@@ -4517,6 +4546,25 @@ function isDateAllowed(dateStr){
   }
   return{ok:true};
 }
+
+/* لغة حقول التاريخ/الوقت: إنجليزي عشان يظهر dd/mm/yyyy سليم بدل حروف عربي معكوسة */
+(function(){
+  var SEL='input[type=date],input[type=time]';
+  function fix(root){
+    if(!root||!root.querySelectorAll)return;
+    root.querySelectorAll(SEL).forEach(function(i){i.setAttribute('lang','en-GB');});
+  }
+  fix(document);
+  new MutationObserver(function(ms){
+    ms.forEach(function(m){
+      m.addedNodes.forEach(function(n){
+        if(n.nodeType!==1)return;
+        if(n.matches&&n.matches(SEL))n.setAttribute('lang','en-GB');
+        fix(n);
+      });
+    });
+  }).observe(document.body,{childList:true,subtree:true});
+})();
 </script>
 <!-- ══ 404 KILL SWITCH OVERLAY ══ -->
 <div id="overlay_404" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:#0a0a0a;z-index:99999;justify-content:center;align-items:center;flex-direction:column;text-align:center;">
