@@ -843,6 +843,13 @@ div[style*="grid-template-columns:1fr 1fr"]>*{min-width:0;}
 input[type="date"],input[type="time"]{direction:ltr;text-align:center;min-width:0;max-width:100%;width:100%;display:block;}
 input[type="date"]::-webkit-datetime-edit,input[type="time"]::-webkit-datetime-edit{direction:ltr;unicode-bidi:isolate;}
 
+/* ── منتقي التاريخ البديل (يوم / شهر / سنة) ── */
+.dsel{display:flex;gap:5px;direction:rtl;width:100%;}
+.dsel select{flex:1;min-width:0;width:auto!important;padding:13px 2px!important;font-size:13px!important;text-align:center;text-align-last:center;background-image:none!important;background-color:var(--card2);border:2px solid var(--border);border-radius:var(--r12);font-family:'Cairo',sans-serif;color:var(--txt);}
+.dsel select:nth-child(2){flex:1.5;}
+.dsel select:focus{border-color:var(--p);outline:none;background-color:#fff;}
+
+
   </style>
 <script>
 /* GitHub Pages adapter: keep the original google.script.run calls unchanged. */
@@ -2016,8 +2023,25 @@ function medChoose(kind){
   var p=ov.getAttribute('data-p')||'';
   medCloseChooser();
   var inp=document.getElementById(p+(kind==='cam'?'medCam':'medFile'));
+  /* داخل تطبيق الأندرويد: الكاميرا تُفتح من فلاتر مباشرة (أضمن من input capture) */
+  if(kind==='cam'&&window.CameraChannel&&window.CameraChannel.postMessage){
+    window.__medCamPrefix=p;
+    try{window.CameraChannel.postMessage('camera');return;}catch(e){}
+  }
   if(inp)inp.click();
 }
+/* فلاتر بترجّع الصورة هنا (base64 JPEG) */
+window.onNativePhoto=function(b64,name){
+  try{
+    var p=window.__medCamPrefix||'';
+    var inp=document.getElementById(p+'medCam');if(!inp||!b64)return;
+    var bin=atob(b64),len=bin.length,u8=new Uint8Array(len);
+    for(var i=0;i<len;i++)u8[i]=bin.charCodeAt(i);
+    var f=new File([u8],name||('camera_'+Date.now()+'.jpg'),{type:'image/jpeg'});
+    var dt=new DataTransfer();dt.items.add(f);inp.files=dt.files;
+    inp.dispatchEvent(new Event('change',{bubbles:true}));
+  }catch(e){toast('❌ تعذر قراءة الصورة','err');}
+};
 /* ═══ رفع الشهادة الطبية: كاميرا أو معرض/ملف ═══ */
 function medSetStatus(p,kind,html){
   var el=document.getElementById(p+'medStatus');if(!el)return;
@@ -4547,19 +4571,62 @@ function isDateAllowed(dateStr){
   return{ok:true};
 }
 
-/* لغة حقول التاريخ/الوقت: إنجليزي عشان يظهر dd/mm/yyyy سليم بدل حروف عربي معكوسة */
+/* ═══ منتقي تاريخ عربي (يوم / شهر / سنة) بدل حقل أندرويد الأصلي المعكوس ═══
+   الحقل الأصلي بيفضل موجود مخفي، فكل الكود القديم (value / onchange) شغال زي ما هو. */
 (function(){
-  var SEL='input[type=date],input[type=time]';
+  var MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  var desc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
+  function pad(n){return n<10?'0'+n:''+n;}
+  function opt(sel,v,txt){var o=document.createElement('option');o.value=v;o.textContent=txt;sel.appendChild(o);}
+  function enhance(inp){
+    if(inp._dsel||!inp.parentNode)return;
+    inp._dsel=true;
+    var wrap=document.createElement('div');wrap.className='dsel';
+    var d=document.createElement('select'),m=document.createElement('select'),y=document.createElement('select');
+    var i,cy=new Date().getFullYear();
+    opt(d,'','يوم');for(i=1;i<=31;i++)opt(d,pad(i),i);
+    opt(m,'','شهر');for(i=0;i<12;i++)opt(m,pad(i+1),MONTHS[i]);
+    opt(y,'','سنة');for(i=cy-1;i<=cy+2;i++)opt(y,String(i),i);
+    wrap.appendChild(d);wrap.appendChild(m);wrap.appendChild(y);
+    inp.parentNode.insertBefore(wrap,inp.nextSibling);
+    inp.style.display='none';
+    function sync(){
+      var dv=d.value,mv=m.value,yv=y.value,v='';
+      if(dv&&mv&&yv){
+        var last=new Date(+yv,+mv,0).getDate();
+        if(+dv>last){dv=pad(last);d.value=dv;}
+        v=yv+'-'+mv+'-'+dv;
+      }
+      desc.set.call(inp,v);
+    }
+    [d,m,y].forEach(function(s){
+      s.addEventListener('change',function(){
+        sync();
+        inp.dispatchEvent(new Event('change',{bubbles:true}));
+      });
+    });
+    Object.defineProperty(inp,'value',{
+      configurable:true,
+      get:function(){return desc.get.call(inp);},
+      set:function(v){
+        desc.set.call(inp,v);
+        var p=(v||'').split('-');
+        if(p.length===3){y.value=p[0];m.value=p[1];d.value=p[2];}
+        else{d.value='';m.value='';y.value='';}
+      }
+    });
+  }
   function fix(root){
     if(!root||!root.querySelectorAll)return;
-    root.querySelectorAll(SEL).forEach(function(i){i.setAttribute('lang','en-GB');});
+    root.querySelectorAll('input[type=date]').forEach(enhance);
+    root.querySelectorAll('input[type=time]').forEach(function(i){i.setAttribute('lang','en-GB');});
   }
   fix(document);
   new MutationObserver(function(ms){
-    ms.forEach(function(m){
-      m.addedNodes.forEach(function(n){
+    ms.forEach(function(mu){
+      mu.addedNodes.forEach(function(n){
         if(n.nodeType!==1)return;
-        if(n.matches&&n.matches(SEL))n.setAttribute('lang','en-GB');
+        if(n.matches&&n.matches('input[type=date]'))enhance(n);
         fix(n);
       });
     });
