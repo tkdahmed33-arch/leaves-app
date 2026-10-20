@@ -843,6 +843,12 @@ div[style*="grid-template-columns:1fr 1fr"]>*{min-width:0;}
 input[type="date"],input[type="time"]{direction:ltr;text-align:center;min-width:0;max-width:100%;width:100%;display:block;}
 input[type="date"]::-webkit-datetime-edit,input[type="time"]::-webkit-datetime-edit{direction:ltr;unicode-bidi:isolate;}
 
+/* ── حقل التاريخ الموحد (كاليندر) ── */
+.dpick{position:relative;width:100%;}
+.dpick-show{display:flex;align-items:center;justify-content:space-between;direction:ltr;gap:8px;width:100%;padding:13px 14px;font-size:14px;font-family:'Cairo',sans-serif;background-color:var(--card2);border:2px solid var(--border);border-radius:var(--r12);color:inherit;box-sizing:border-box;}
+.dpick-show.empty{opacity:.65;}
+.dpick-show i{opacity:.7;}
+.dpick input[type="date"]{position:absolute!important;top:0;left:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;font-size:16px;cursor:pointer;display:block!important;}
 /* ── منتقي التاريخ البديل (يوم / شهر / سنة) ── */
 .dsel{display:flex;gap:5px;direction:rtl;width:100%;}
 .dsel select{flex:1;min-width:0;width:auto!important;padding:13px 2px!important;font-size:13px!important;text-align:center;text-align-last:center;background-image:none!important;background-color:var(--card2);border:2px solid var(--border);border-radius:var(--r12);font-family:'Cairo',sans-serif;color:var(--txt);}
@@ -4569,50 +4575,39 @@ function isDateAllowed(dateStr){
   return{ok:true};
 }
 
-/* ═══ منتقي تاريخ عربي (يوم / شهر / سنة) بدل حقل أندرويد الأصلي المعكوس ═══
-   الحقل الأصلي بيفضل موجود مخفي، فكل الكود القديم (value / onchange) شغال زي ما هو. */
+/* ═══ حقل تاريخ واحد: بيعرض التاريخ (يوم/شهر/سنة) وبالضغط عليه بيفتح الكاليندر الأصلي ═══
+   الحقل الأصلي (type=date) بيفضل فوق الحقل المعروض شفاف، فالضغطة بتروح له مباشرة
+   وكل الكود القديم (value / onchange / min / max) شغال زي ما هو. */
 (function(){
-  var MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
   var desc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
-  function pad(n){return n<10?'0'+n:''+n;}
-  function opt(sel,v,txt){var o=document.createElement('option');o.value=v;o.textContent=txt;sel.appendChild(o);}
+  function fmt(v){
+    var p=(v||'').split('-');
+    return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:'';
+  }
   function enhance(inp){
     if(inp._dsel||!inp.parentNode)return;
     inp._dsel=true;
-    var wrap=document.createElement('div');wrap.className='dsel';
-    var d=document.createElement('select'),m=document.createElement('select'),y=document.createElement('select');
-    var i,cy=new Date().getFullYear();
-    opt(d,'','يوم');for(i=1;i<=31;i++)opt(d,pad(i),i);
-    opt(m,'','شهر');for(i=0;i<12;i++)opt(m,pad(i+1),MONTHS[i]);
-    opt(y,'','سنة');for(i=cy-1;i<=cy+2;i++)opt(y,String(i),i);
-    wrap.appendChild(d);wrap.appendChild(m);wrap.appendChild(y);
-    inp.parentNode.insertBefore(wrap,inp.nextSibling);
-    inp.style.display='none';
-    function sync(){
-      var dv=d.value,mv=m.value,yv=y.value,v='';
-      if(dv&&mv&&yv){
-        var last=new Date(+yv,+mv,0).getDate();
-        if(+dv>last){dv=pad(last);d.value=dv;}
-        v=yv+'-'+mv+'-'+dv;
-      }
-      desc.set.call(inp,v);
+    var wrap=document.createElement('div');wrap.className='dpick';
+    var show=document.createElement('div');show.className='dpick-show';
+    var txt=document.createElement('span');
+    var ico=document.createElement('i');ico.className='fas fa-calendar-alt';
+    show.appendChild(txt);show.appendChild(ico);
+    inp.parentNode.insertBefore(wrap,inp);
+    wrap.appendChild(show);
+    wrap.appendChild(inp);
+    function refresh(){
+      var f=fmt(desc.get.call(inp));
+      txt.textContent=f||'اختر التاريخ';
+      show.classList.toggle('empty',!f);
     }
-    [d,m,y].forEach(function(s){
-      s.addEventListener('change',function(){
-        sync();
-        inp.dispatchEvent(new Event('change',{bubbles:true}));
-      });
-    });
+    inp.addEventListener('change',refresh);
+    inp.addEventListener('input',refresh);
     Object.defineProperty(inp,'value',{
       configurable:true,
       get:function(){return desc.get.call(inp);},
-      set:function(v){
-        desc.set.call(inp,v);
-        var p=(v||'').split('-');
-        if(p.length===3){y.value=p[0];m.value=p[1];d.value=p[2];}
-        else{d.value='';m.value='';y.value='';}
-      }
+      set:function(v){desc.set.call(inp,v);refresh();}
     });
+    refresh();
   }
   function fix(root){
     if(!root||!root.querySelectorAll)return;
