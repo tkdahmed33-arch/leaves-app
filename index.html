@@ -1450,12 +1450,10 @@ var EMPTY_HTML='<div class="empty"><div class="empty-ico"><i class="fas fa-inbox
 
 // ==================== إشعارات Flutter اللحظية ====================
 var _reqInfo = {}; // خريطة: رقم الصف → {name, type}
+// تم تعطيلها عمداً: كانت بتعمل إشعار محلي على جهاز اللي عمل الإجراء نفسه (إرسال طلب / موافقة / رفض).
+// الإشعارات الحقيقية بتتبعت من الباك اند (FCM) للمستلمين فقط.
 function sendFlutterNotification(title, body){
-  try{
-    if(window.NotificationChannel){
-      NotificationChannel.postMessage(title+'|'+body);
-    }
-  }catch(e){}
+  return;
 }
 
 // يستدعيه تطبيق Flutter بعد الحصول على FCM Token من Firebase.
