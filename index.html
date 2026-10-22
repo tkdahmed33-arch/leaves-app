@@ -848,7 +848,33 @@ input[type="date"]::-webkit-datetime-edit,input[type="time"]::-webkit-datetime-e
 .dpick-show{display:flex;align-items:center;justify-content:space-between;direction:ltr;gap:8px;width:100%;padding:13px 14px;font-size:14px;font-family:'Cairo',sans-serif;background-color:var(--card2);border:2px solid var(--border);border-radius:var(--r12);color:inherit;box-sizing:border-box;}
 .dpick-show.empty{opacity:.65;}
 .dpick-show i{opacity:.7;}
-.dpick input[type="date"]{position:absolute!important;top:0;left:0;width:100%!important;height:100%!important;opacity:0;margin:0!important;padding:0!important;border:0!important;font-size:16px;cursor:pointer;display:block!important;}
+/* الحقل الأصلي بيفضل مخفي كمخزن للقيمة فقط — الاختيار بيتم من الكاليندر الداخلي (مش بيعتمد على منتقي التليفون) */
+.dpick input[type="date"]{display:none!important;}
+.dpick-show{cursor:pointer;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none;}
+.dpick-show:active{border-color:var(--p);}
+/* ── الكاليندر الداخلي ── */
+.dcal-ov{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,.45);z-index:9500;display:none;align-items:flex-end;justify-content:center;-webkit-tap-highlight-color:transparent;}
+.dcal-ov.open{display:-webkit-flex;display:flex;}
+.dcal{background:var(--card,#fff);width:100%;max-width:420px;box-sizing:border-box;border-radius:20px 20px 0 0;padding:14px 12px calc(16px + env(safe-area-inset-bottom,0px));direction:rtl;font-family:'Cairo',sans-serif;color:var(--txt,#1c1917);box-shadow:0 -6px 24px rgba(0,0,0,.22);}
+@media (min-width:480px){.dcal-ov{align-items:center;}.dcal{border-radius:20px;padding-bottom:16px;}}
+.dcal-top{display:flex;align-items:center;margin-bottom:10px;}
+.dcal-top>*{margin:0 3px;}
+.dcal-nav{width:40px;height:40px;-webkit-flex:0 0 40px;flex:0 0 40px;border:0;border-radius:12px;background:var(--pxl,#f9ebea);color:var(--p,#c0392b);font-size:15px;cursor:pointer;padding:0;}
+.dcal-nav[disabled]{opacity:.3;cursor:default;}
+.dcal-sel{display:flex;-webkit-flex:1;flex:1;min-width:0;}
+.dcal-sel select{-webkit-flex:1;flex:1;min-width:0;width:auto!important;margin:0 3px;padding:9px 2px!important;font-size:14px!important;font-family:inherit;border:2px solid var(--border,#ddd9d3);border-radius:10px;background:var(--card2,#fafaf8)!important;background-image:none!important;color:var(--txt,#1c1917);text-align:center;text-align-last:center;}
+.dcal-tbl{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:3px;direction:rtl;}
+.dcal-tbl th{font-size:11px;font-weight:700;color:var(--txt3,#9d9690);padding:4px 0;text-align:center;}
+.dcal-tbl td{padding:0;text-align:center;}
+.dcal-d{display:block;width:100%;height:40px;border:2px solid transparent;border-radius:10px;background:transparent;color:var(--txt,#1c1917);font-size:14px;font-family:inherit;font-weight:600;cursor:pointer;padding:0;}
+.dcal-d.today{border-color:var(--p,#c0392b);}
+.dcal-d.sel{background:var(--p,#c0392b);border-color:var(--p,#c0392b);color:#fff;}
+.dcal-d[disabled]{opacity:.28;cursor:default;}
+.dcal-bar{display:flex;margin-top:10px;}
+.dcal-bar>*{margin:0 3px;}
+.dcal-btn{-webkit-flex:1;flex:1;padding:11px 4px;border:0;border-radius:12px;font-family:inherit;font-weight:700;font-size:13px;cursor:pointer;background:var(--pxl,#f9ebea);color:var(--p,#c0392b);}
+.dcal-btn[disabled]{opacity:.35;cursor:default;}
+.dcal-btn.dim{background:var(--card2,#fafaf8);color:var(--txt2,#6b6560);border:2px solid var(--border,#ddd9d3);}
 /* ── منتقي التاريخ البديل (يوم / شهر / سنة) ── */
 .dsel{display:flex;gap:5px;direction:rtl;width:100%;}
 .dsel select{flex:1;min-width:0;width:auto!important;padding:13px 2px!important;font-size:13px!important;text-align:center;text-align-last:center;background-image:none!important;background-color:var(--card2);border:2px solid var(--border);border-radius:var(--r12);font-family:'Cairo',sans-serif;color:var(--txt);}
@@ -1538,6 +1564,18 @@ function show404(){
 
 function getServerDate(){return S.serverDate?new Date(S.serverDate):new Date();}
 
+/* ── مساعدات تواريخ آمنة على كل التليفونات ──
+   _pd : بيحوّل "YYYY-MM-DD" لتاريخ بالتوقيت المحلي (new Date("YYYY-MM-DD") بيتفسّر UTC وبيرجّع يوم غلط لو توقيت الجهاز قبل UTC).
+   _isoLocal : بيرجّع "YYYY-MM-DD" من تاريخ محلي (toISOString بيحوّل لـ UTC وبيطلّع يوم قبله في مصر). */
+function _pd(s){
+  if(typeof s==='string'){var m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);if(m)return new Date(+m[1],+m[2]-1,+m[3]);}
+  return new Date(s);
+}
+function _isoLocal(d){
+  var m=d.getMonth()+1,day=d.getDate();
+  return d.getFullYear()+'-'+(m<10?'0':'')+m+'-'+(day<10?'0':'')+day;
+}
+
 function fillTimeSelects(){
   ['oH','rH'].forEach(function(id){var s=document.getElementById(id);for(var h=1;h<=12;h++){var o=document.createElement('option');o.value=h;o.textContent=h;s.appendChild(o);}});
   ['oM','rM'].forEach(function(id){var s=document.getElementById(id);['00','15','30','45'].forEach(function(m){var o=document.createElement('option');o.value=m;o.textContent=m;s.appendChild(o);});});
@@ -1993,7 +2031,7 @@ function empValLv(){
   var chk=isDateAllowed(sd);if(!chk.ok){if(dm){dm.className='dmsg err';dm.textContent='❌ '+chk.msg;}return;}
   var rangeMsg=_leaveDateRangeMessage(sd,ed,d.fixedRestDay);
   if(rangeMsg){if(dm){dm.className='dmsg err';dm.textContent=rangeMsg;}return;}
-  var d1=new Date(sd),d2=new Date(ed),diff=countLeaveDaysExcludingFixedRest(d1,d2,d.fixedRestDay);
+  var d1=_pd(sd),d2=_pd(ed),diff=countLeaveDaysExcludingFixedRest(d1,d2,d.fixedRestDay);
   var now=getServerDate();now.setHours(0,0,0,0);var tmr=new Date(now);tmr.setDate(tmr.getDate()+1);d1.setHours(0,0,0,0);
   if((lt==='اعتيادي'||lt==='راحه'||lt==='بدل راحه')&&d1<tmr){if(dm){dm.className='dmsg err';dm.textContent='❌ هذا النوع يبدأ من الغد على الأقل';}return;}
   if(lt==='عارضه'&&diff>2){if(dm){dm.className='dmsg err';dm.textContent='❌ العارضة حد أقصى يومين';}return;}
@@ -2107,7 +2145,7 @@ function empSubmitLv(){
   var isMedExempt=d&&d.medExempt;
   var rangeMsg=_leaveDateRangeMessage(sd,ed,d.fixedRestDay);
   if(rangeMsg){toast(rangeMsg,'err');return;}
-  var diff=countLeaveDaysExcludingFixedRest(new Date(sd),new Date(ed),d.fixedRestDay);
+  var diff=countLeaveDaysExcludingFixedRest(_pd(sd),_pd(ed),d.fixedRestDay);
   var map={"اعتيادي":d.annual,"عارضه":d.casual,"بدون اجر":d.noPay,"راحه":d.rest,"مرضي":d.sick,"زواج":d.wedding,"وفاة":d.death,"باجر":d.paid,"بدل راحه":d.restComp||0};
   var available=map[lt]||0;
   if(available<=0){toast('❌ لا يوجد رصيد متاح من نوع: '+lt,'err');return;}
@@ -2400,8 +2438,8 @@ function _empBuildBadalRescheduleSection(container,btn){
   var firstOfMonth=new Date(today.getFullYear(),today.getMonth(),1);
   var lastOfMonth=new Date(today.getFullYear(),today.getMonth()+1,0);
   // حساب أدنى تاريخ للتحويل (الغد) وأقصى تاريخ (آخر يوم الشهر)
-  var minDate=tmr.toISOString().split('T')[0];
-  var maxDate=lastOfMonth.toISOString().split('T')[0];
+  var minDate=_isoLocal(tmr);
+  var maxDate=_isoLocal(lastOfMonth);
   var sec=document.createElement('div');sec.id='emp_clv_badal_reschedule';
   sec.style.cssText='margin-top:12px;padding:12px;background:var(--pxl);border:1.5px solid rgba(192,57,43,.2);border-radius:var(--r10);';
   if(isLastDayOfMonth){
@@ -2439,7 +2477,7 @@ function _empBuildBadalRescheduleSection(container,btn){
     if(rDateInp)rDateInp.onchange=function(){
       var rm=document.getElementById('emp_clv_resch_msg');
       var v=this.value;if(!v){if(rm){rm.className='dmsg';rm.textContent='';}return;}
-      var rd=new Date(v);rd.setHours(0,0,0,0);
+      var rd=_pd(v);rd.setHours(0,0,0,0);
       if(rd<tmr){if(rm){rm.className='dmsg err';rm.style.display='flex';rm.textContent='❌ التاريخ يجب أن يكون من الغد على الأقل';}}
       else if(rd.getMonth()!==today.getMonth()||rd.getFullYear()!==today.getFullYear()){if(rm){rm.className='dmsg err';rm.style.display='flex';rm.textContent='❌ التاريخ يجب أن يكون في نفس الشهر';}}
       else{if(rm){rm.className='dmsg ok';rm.style.display='flex';rm.textContent='✅ سيُحوَّل بدل الراحه إلى هذا التاريخ';}}
@@ -2581,7 +2619,7 @@ function empSubmitCancelLv(){
     holidays.forEach(function(h){
       var iso=(h&& (h.date||h.isoDate) || '').toString().trim();
       if(!/^\d{4}-\d{2}-\d{2}$/.test(iso)||seen[iso])return;
-      var hd=new Date(iso);hd.setHours(0,0,0,0);
+      var hd=_pd(iso);hd.setHours(0,0,0,0);
       var firstOfCurrentMonth=new Date(today.getFullYear(),today.getMonth(),1);
       if(hd<firstOfCurrentMonth||hd>nextMonthEnd)return;
       var label='إجازة رسمية'+(h.name?' — '+h.name:'');
@@ -2632,7 +2670,7 @@ function countLeaveDaysExcludingFixedRest(start,end,fixedDayName){
     var normalized=clean.replace(/[\u0623\u0625\u0622]/g,'\u0627');
     fixedIdx=map[normalized];
   }
-  var d1=new Date(start),d2=new Date(end);
+  var d1=_pd(start),d2=_pd(end);
   d1.setHours(0,0,0,0);d2.setHours(0,0,0,0);
   if(isNaN(d1.getTime())||isNaN(d2.getTime())||d2<d1)return 0;
   var official={};
@@ -2650,7 +2688,7 @@ function countLeaveDaysExcludingFixedRest(start,end,fixedDayName){
 }
 
 function _officialHolidayNamesInRange(start,end){
-  var d1=new Date(start),d2=new Date(end),names=[];
+  var d1=_pd(start),d2=_pd(end),names=[];
   if(isNaN(d1.getTime())||isNaN(d2.getTime()))return names;
   d1.setHours(0,0,0,0);d2.setHours(0,0,0,0);
   (S.officialHolidays||[]).forEach(function(h){
@@ -2665,7 +2703,7 @@ function _officialHolidayNamesInRange(start,end){
 }
 
 function _leaveDateRangeMessage(start,end,fixedDayName){
-  var d1=new Date(start),d2=new Date(end);
+  var d1=_pd(start),d2=_pd(end);
   if(isNaN(d1.getTime())||isNaN(d2.getTime()))return '❌ التاريخ غير صالح';
   d1.setHours(0,0,0,0);d2.setHours(0,0,0,0);
   if(d2<d1)return '❌ تاريخ النهاية يجب أن يكون نفس تاريخ البداية أو بعده';
@@ -2697,7 +2735,7 @@ function empValCancelRest(){
   if(!sd){if(replFg)replFg.style.display=mode==='credit'?'none':'block';return;}
 
   var today=getServerDate();today.setHours(0,0,0,0);
-  var sdDate=new Date(sd);sdDate.setHours(0,0,0,0);
+  var sdDate=_pd(sd);sdDate.setHours(0,0,0,0);
 
   function showErr(txt){if(msg){msg.className='dmsg err';msg.style.display='flex';msg.textContent=txt;}}
   function showOk(txt) {if(msg){msg.className='dmsg ok';msg.style.display='flex';msg.textContent=txt;}}
@@ -2725,7 +2763,7 @@ function empValCancelRest(){
   }
   if(!repl)return;
   var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
-  var replDate=new Date(repl);replDate.setHours(0,0,0,0);
+  var replDate=_pd(repl);replDate.setHours(0,0,0,0);
 
   // ── 3. يوم البدل من الغد على الأقل ──
   if(replDate<tmr){showErr('❌ يوم البدل يجب أن يكون من الغد على الأقل');return;}
@@ -2769,7 +2807,7 @@ function empSubmitCancelRest(){
   if(!sd){toast('أدخل تاريخ يوم الراحه','wrn');return;}
   if(mode==='credit')repl='';
   // يوم البدل مطلوب فقط عند اختيار التعويض بيوم بدل
-  var sdDate=new Date(sd);sdDate.setHours(0,0,0,0);
+  var sdDate=_pd(sd);sdDate.setHours(0,0,0,0);
   var isLastDay=_isLastDayOfMonth(sdDate);
   if(!repl&&!isLastDay&&mode!=='credit'){toast('اختر طريقة التعويض أو أدخل يوم البدل','wrn');return;}
   loader(true);
@@ -3053,8 +3091,8 @@ function _dhBuildBadalRescheduleSection(container,btn){
   var isLastDayOfMonth=_isLastDayOfMonth(today);
   var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
   var lastOfMonth=new Date(today.getFullYear(),today.getMonth()+1,0);
-  var minDate=tmr.toISOString().split('T')[0];
-  var maxDate=lastOfMonth.toISOString().split('T')[0];
+  var minDate=_isoLocal(tmr);
+  var maxDate=_isoLocal(lastOfMonth);
   var sec=document.createElement('div');sec.id='dh_clv_badal_reschedule';
   sec.style.cssText='margin-top:12px;padding:12px;background:var(--pxl);border:1.5px solid rgba(192,57,43,.2);border-radius:var(--r10);';
   if(isLastDayOfMonth){
@@ -3081,7 +3119,7 @@ function _dhBuildBadalRescheduleSection(container,btn){
     if(rdi)rdi.onchange=function(){
       var rm=document.getElementById('dh_clv_resch_msg');var v=this.value;
       if(!v){if(rm){rm.className='dmsg';rm.textContent='';}return;}
-      var rd=new Date(v);rd.setHours(0,0,0,0);
+      var rd=_pd(v);rd.setHours(0,0,0,0);
       if(rd<tmr)rm&&(rm.className='dmsg err',rm.style.display='flex',rm.textContent='❌ التاريخ يجب أن يكون من الغد على الأقل');
       else if(rd.getMonth()!==today.getMonth()||rd.getFullYear()!==today.getFullYear())rm&&(rm.className='dmsg err',rm.style.display='flex',rm.textContent='❌ التاريخ يجب أن يكون في نفس الشهر');
       else rm&&(rm.className='dmsg ok',rm.style.display='flex',rm.textContent='✅ سيُحوَّل بدل الراحه إلى هذا التاريخ');
@@ -3177,7 +3215,7 @@ function dhValCancelRest(){
   if(btn)btn.disabled=true;
   if(!sd){if(replFg)replFg.style.display=mode==='credit'?'none':'block';return;}
   var today=getServerDate();today.setHours(0,0,0,0);
-  var sdDate=new Date(sd);sdDate.setHours(0,0,0,0);
+  var sdDate=_pd(sd);sdDate.setHours(0,0,0,0);
 
   // [FIX] قفل الشهر السابق من بداية الشهر الجديد
   var firstOfMonth=new Date(today.getFullYear(),today.getMonth(),1);
@@ -3204,7 +3242,7 @@ function dhValCancelRest(){
   }
   if(!repl)return;
   var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
-  var replDate=new Date(repl);replDate.setHours(0,0,0,0);
+  var replDate=_pd(repl);replDate.setHours(0,0,0,0);
   if(replDate<tmr){
     if(msg){msg.className='dmsg err';msg.style.display='flex';msg.textContent='❌ يوم البدل يجب أن يكون من الغد على الأقل';}
     return;
@@ -3238,7 +3276,7 @@ function dhSubmitCancelRest(){
   if(!sd){toast('أدخل تاريخ يوم الراحه','wrn');return;}
   if(mode==='credit')repl='';
   // يوم البدل مطلوب فقط عند اختيار التعويض بيوم بدل
-  var sdDate=new Date(sd);sdDate.setHours(0,0,0,0);
+  var sdDate=_pd(sd);sdDate.setHours(0,0,0,0);
   var isLastDay=_isLastDayOfMonth(sdDate);
   if(!repl&&!isLastDay&&mode!=='credit'){toast('اختر طريقة التعويض أو أدخل يوم البدل','wrn');return;}
   loader(true);
@@ -3542,7 +3580,7 @@ function dhValLv(){
   var chk=isDateAllowed(sd);if(!chk.ok){if(dm){dm.className='dmsg err';dm.textContent='❌ '+chk.msg;}return;}
   var rangeMsg=_leaveDateRangeMessage(sd,ed,emp.fixedRestDay);
   if(rangeMsg){if(dm){dm.className='dmsg err';dm.textContent=rangeMsg;}return;}
-  var d1=new Date(sd),d2=new Date(ed),diff=countLeaveDaysExcludingFixedRest(d1,d2,emp.fixedRestDay);
+  var d1=_pd(sd),d2=_pd(ed),diff=countLeaveDaysExcludingFixedRest(d1,d2,emp.fixedRestDay);
   var now=getServerDate();now.setHours(0,0,0,0);var tmr=new Date(now);tmr.setDate(tmr.getDate()+1);d1.setHours(0,0,0,0);
   if((lt==='اعتيادي'||lt==='راحه'||lt==='بدل راحه')&&d1<tmr){if(dm){dm.className='dmsg err';dm.textContent='❌ هذا النوع يبدأ من الغد على الأقل';}return;}
   if(lt==='عارضه'&&diff>2){if(dm){dm.className='dmsg err';dm.textContent='❌ العارضة حد أقصى يومين';}return;}
@@ -3561,7 +3599,7 @@ function dhSubmitLv(){
   var isMedExempt=emp&&emp.medExempt;
   var rangeMsg=_leaveDateRangeMessage(sd,ed,emp.fixedRestDay);
   if(rangeMsg){toast(rangeMsg,'err');return;}
-  var diff=countLeaveDaysExcludingFixedRest(new Date(sd),new Date(ed),emp.fixedRestDay);
+  var diff=countLeaveDaysExcludingFixedRest(_pd(sd),_pd(ed),emp.fixedRestDay);
   var map={"اعتيادي":emp.annual,"عارضه":emp.casual,"بدون اجر":emp.noPay,"راحه":emp.rest,"مرضي":emp.sick,"زواج":emp.wedding,"وفاة":emp.death,"باجر":emp.paid,"بدل راحه":emp.restComp||0};
   var available=map[lt]||0;
   if(available<=0){toast('❌ لا يوجد رصيد متاح لنوع الإجازة "'+lt+'"','err');return;}
@@ -4152,8 +4190,8 @@ function _selfBuildBadalRescheduleSection(pfx,container,btn){
   var isLastDayOfMonth=_isLastDayOfMonth(today);
   var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
   var lastOfMonth=new Date(today.getFullYear(),today.getMonth()+1,0);
-  var minDate=tmr.toISOString().split('T')[0];
-  var maxDate=lastOfMonth.toISOString().split('T')[0];
+  var minDate=_isoLocal(tmr);
+  var maxDate=_isoLocal(lastOfMonth);
   var secId=pfx+'clv_badal_reschedule';
   var sec=document.createElement('div');sec.id=secId;
   sec.style.cssText='margin-top:12px;padding:12px;background:var(--pxl);border:1.5px solid rgba(192,57,43,.2);border-radius:var(--r10);';
@@ -4185,7 +4223,7 @@ function _selfBuildBadalRescheduleSection(pfx,container,btn){
     if(rdi)rdi.onchange=function(){
       var rm=document.getElementById(rschMsgId);var v=this.value;
       if(!v){if(rm){rm.className='dmsg';rm.textContent='';}return;}
-      var rd=new Date(v);rd.setHours(0,0,0,0);
+      var rd=_pd(v);rd.setHours(0,0,0,0);
       if(rd<tmr)rm&&(rm.className='dmsg err',rm.style.display='flex',rm.textContent='❌ التاريخ يجب أن يكون من الغد على الأقل');
       else if(rd.getMonth()!==today.getMonth()||rd.getFullYear()!==today.getFullYear())rm&&(rm.className='dmsg err',rm.style.display='flex',rm.textContent='❌ التاريخ يجب أن يكون في نفس الشهر');
       else rm&&(rm.className='dmsg ok',rm.style.display='flex',rm.textContent='✅ سيُحوَّل بدل الراحه إلى هذا التاريخ');
@@ -4268,7 +4306,7 @@ function selfValCancelRest(role){
   if(btn)btn.disabled=true;
   if(!sd){if(replFg)replFg.style.display=mode==='credit'?'none':'block';return;}
   var today=getServerDate();today.setHours(0,0,0,0);
-  var sdDate=new Date(sd);sdDate.setHours(0,0,0,0);
+  var sdDate=_pd(sd);sdDate.setHours(0,0,0,0);
 
   // [FIX] قفل الشهر السابق من بداية الشهر الجديد
   var firstOfMonth=new Date(today.getFullYear(),today.getMonth(),1);
@@ -4295,7 +4333,7 @@ function selfValCancelRest(role){
   }
   if(!repl)return;
   var tmr=new Date(today);tmr.setDate(tmr.getDate()+1);
-  var replDate=new Date(repl);replDate.setHours(0,0,0,0);
+  var replDate=_pd(repl);replDate.setHours(0,0,0,0);
   if(replDate<tmr){
     if(msg){msg.className='dmsg err';msg.style.display='flex';msg.textContent='❌ يوم البدل يجب أن يكون من الغد على الأقل';}
     return;
@@ -4330,7 +4368,7 @@ function selfSubmitCancelRest(role){
   if(!sd){toast('أدخل تاريخ يوم الراحه','wrn');return;}
   if(mode==='credit')repl='';
   // يوم البدل مطلوب فقط عند اختيار التعويض بيوم بدل
-  var sdDate=new Date(sd);sdDate.setHours(0,0,0,0);
+  var sdDate=_pd(sd);sdDate.setHours(0,0,0,0);
   var isLastDay=_isLastDayOfMonth(sdDate);
   if(!repl&&!isLastDay&&mode!=='credit'){toast('اختر طريقة التعويض أو أدخل يوم البدل','wrn');return;}
   loader(true);
@@ -4392,7 +4430,7 @@ function selfValLv(role){
   var chk=isDateAllowed(sd);if(!chk.ok){if(dm){dm.className='dmsg err';dm.textContent='❌ '+chk.msg;}return;}
   var rangeMsg=_leaveDateRangeMessage(sd,ed,d.fixedRestDay);
   if(rangeMsg){if(dm){dm.className='dmsg err';dm.textContent=rangeMsg;}return;}
-  var d1=new Date(sd),d2=new Date(ed),diff=countLeaveDaysExcludingFixedRest(d1,d2,d.fixedRestDay);
+  var d1=_pd(sd),d2=_pd(ed),diff=countLeaveDaysExcludingFixedRest(d1,d2,d.fixedRestDay);
   var now=getServerDate();now.setHours(0,0,0,0);var tmr=new Date(now);tmr.setDate(tmr.getDate()+1);d1.setHours(0,0,0,0);
   if((lt==='اعتيادي'||lt==='راحه'||lt==='بدل راحه')&&d1<tmr){if(dm){dm.className='dmsg err';dm.textContent='❌ هذا النوع يبدأ من الغد على الأقل';}return;}
   if(lt==='عارضه'&&diff>2){if(dm){dm.className='dmsg err';dm.textContent='❌ العارضة حد أقصى يومين';}return;}
@@ -4416,7 +4454,7 @@ function selfSubmitLv(role){
   if(lt==='مرضي'&&!isMedExempt&&!S.medFile){toast('❌ يجب إرفاق شهادة طبية','err');return;}
   var rangeMsg=_leaveDateRangeMessage(sd,ed,d.fixedRestDay);
   if(rangeMsg){toast(rangeMsg,'err');return;}
-  var diff=countLeaveDaysExcludingFixedRest(new Date(sd),new Date(ed),d.fixedRestDay);
+  var diff=countLeaveDaysExcludingFixedRest(_pd(sd),_pd(ed),d.fixedRestDay);
   var rq={empCode:d.code,empName:d.name,dept:d.dept,leaveType:lt,startDate:sd,endDate:ed,daysCount:diff,deptHeadName:'',notes:nt,fileName:S.medFile?S.medFile.name:null,selfSubmit:true,medExempt:isMedExempt};
   loader(true);
   if(lt==='مرضي'&&S.medFile){
@@ -4552,7 +4590,7 @@ function isPermissionDateAllowed(dateStr){
   var base=isDateAllowed(dateStr);
   if(!base.ok)return base;
   var now=getServerDate();now.setHours(0,0,0,0);
-  var d=new Date(dateStr);d.setHours(0,0,0,0);
+  var d=_pd(dateStr);d.setHours(0,0,0,0);
   if(d>now)return{ok:false,msg:'لا يمكن تقديم الإذن أو التصريح بتاريخ الغد أو أي تاريخ مستقبلي'};
   if(d.getFullYear()!==now.getFullYear()||d.getMonth()!==now.getMonth()){
     return{ok:false,msg:'الإذن والتصريح متاحان للشهر الحالي فقط — لا يمكن استخدام رصيد الشهر الجديد على الشهر السابق'};
@@ -4563,7 +4601,7 @@ function isDateAllowed(dateStr){
   if(!S.serverDate)return{ok:true};
   var now=new Date(S.serverDate);
   var nowYear=now.getFullYear(),nowMonth=now.getMonth(),nowDay=now.getDate();
-  var d=new Date(dateStr);
+  var d=_pd(dateStr);
   if(isNaN(d.getTime()))return{ok:false,msg:'تاريخ غير صالح'};
   var dYear=d.getFullYear(),dMonth=d.getMonth();
   if(nowDay>=2){
@@ -4575,20 +4613,143 @@ function isDateAllowed(dateStr){
   return{ok:true};
 }
 
-/* ═══ حقل تاريخ واحد: بيعرض التاريخ (يوم/شهر/سنة) وبالضغط عليه بيفتح الكاليندر الأصلي ═══
-   الحقل الأصلي (type=date) بيفضل فوق الحقل المعروض شفاف، فالضغطة بتروح له مباشرة
-   وكل الكود القديم (value / onchange / min / max) شغال زي ما هو. */
+/* ═══ حقل التاريخ: كاليندر داخلي بيشتغل على كل التليفونات ═══
+   قبل كده كان الحقل الأصلي (type=date) شفّاف فوق الحقل المعروض، فلو التليفون/الـ WebView مش بيفتح منتقي التاريخ
+   (أو بيعتبر الحقل نص عادي) الموظف مكانش بيقدر يختار أي تاريخ.
+   دلوقتي الحقل الأصلي بيفضل مخفي كمخزن للقيمة، والاختيار من كاليندر مبني بـ HTML/JS عادي (بدون أي اعتماد على منتقي الجهاز)،
+   وكل الكود القديم (value / onchange / min / max) شغال زي ما هو. الكود مكتوب ES5 عشان التليفونات القديمة. */
 (function(){
   var desc=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
-  function fmt(v){
-    var p=(v||'').split('-');
-    return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:'';
+  var MONTHS=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+  var WDAYS=['سبت','أحد','اثنين','ثلاثاء','أربعاء','خميس','جمعة']; /* الأسبوع بيبدأ بالسبت */
+  var RE_ISO=/^(\d{4})-(\d{2})-(\d{2})$/;
+  function pad(n){return n<10?'0'+n:''+n;}
+  function iso(y,m,d){return y+'-'+pad(m+1)+'-'+pad(d);}
+  function fmt(v){var p=(v||'').split('-');return p.length===3?p[2]+'/'+p[1]+'/'+p[0]:'';}
+  function getVal(inp){return desc.get.call(inp)||'';}
+  function fire(el,type){
+    var ev;
+    try{ev=new Event(type,{bubbles:true});}catch(e){ev=document.createEvent('Event');ev.initEvent(type,true,true);}
+    el.dispatchEvent(ev);
   }
+  function todayIso(){
+    var d=(typeof getServerDate==='function')?getServerDate():new Date();
+    return iso(d.getFullYear(),d.getMonth(),d.getDate());
+  }
+  function parseIso(v){var m=RE_ISO.exec(v||'');return m?{y:+m[1],m:+m[2]-1,d:+m[3]}:null;}
+
+  /* ── نافذة الكاليندر (واحدة مشتركة) ── */
+  var ov=null,box,selM,selY,btnPrev,btnNext,tbl,btnToday,btnClear,cur={y:0,m:0},target=null,minV='',maxV='',openedAt=0;
+
+  function build(){
+    ov=document.createElement('div');ov.className='dcal-ov';
+    box=document.createElement('div');box.className='dcal';
+    box.innerHTML=
+      '<div class="dcal-top">'+
+        '<button type="button" class="dcal-nav" data-a="prev" aria-label="الشهر السابق"><i class="fas fa-chevron-right"></i></button>'+
+        '<div class="dcal-sel"><select data-a="month"></select><select data-a="year"></select></div>'+
+        '<button type="button" class="dcal-nav" data-a="next" aria-label="الشهر التالي"><i class="fas fa-chevron-left"></i></button>'+
+      '</div>'+
+      '<table class="dcal-tbl"></table>'+
+      '<div class="dcal-bar">'+
+        '<button type="button" class="dcal-btn" data-a="today">اليوم</button>'+
+        '<button type="button" class="dcal-btn dim" data-a="clear">مسح</button>'+
+        '<button type="button" class="dcal-btn dim" data-a="close">إغلاق</button>'+
+      '</div>';
+    ov.appendChild(box);document.body.appendChild(ov);
+    selM=box.querySelector('select[data-a=month]');selY=box.querySelector('select[data-a=year]');
+    btnPrev=box.querySelector('[data-a=prev]');btnNext=box.querySelector('[data-a=next]');
+    tbl=box.querySelector('.dcal-tbl');btnToday=box.querySelector('[data-a=today]');btnClear=box.querySelector('[data-a=clear]');
+    var i,o;
+    for(i=0;i<12;i++){o=document.createElement('option');o.value=i;o.textContent=MONTHS[i];selM.appendChild(o);}
+    ov.addEventListener('click',function(e){if(e.target===ov)close();});
+    selM.addEventListener('change',function(){cur.m=+selM.value;render();});
+    selY.addEventListener('change',function(){cur.y=+selY.value;render();});
+    box.addEventListener('click',function(e){
+      var el=e.target,a=null;
+      while(el&&el!==box){
+        if(el.getAttribute&&(el.getAttribute('data-a')||el.getAttribute('data-iso'))){a=el;break;}
+        el=el.parentNode;
+      }
+      if(!a||a.disabled)return;
+      var act=a.getAttribute('data-a'),dv=a.getAttribute('data-iso');
+      if(dv){if(new Date().getTime()-openedAt<300)return;commit(dv);return;}
+      if(act==='prev'){cur.m--;if(cur.m<0){cur.m=11;cur.y--;}render();}
+      else if(act==='next'){cur.m++;if(cur.m>11){cur.m=0;cur.y++;}render();}
+      else if(act==='today'){commit(todayIso());}
+      else if(act==='clear'){commit('');}
+      else if(act==='close'){close();}
+    });
+    document.addEventListener('keydown',function(e){if(ov&&ov.className.indexOf('open')>-1&&(e.key==='Escape'||e.keyCode===27))close();});
+  }
+
+  function inRange(v){return (!minV||v>=minV)&&(!maxV||v<=maxV);}
+
+  function render(){
+    var t=todayIso(),sel=target?getVal(target):'';
+    var tp=parseIso(t),sp=parseIso(sel),mn=parseIso(minV),mx=parseIso(maxV);
+    /* السنين المتاحة */
+    var y0=mn?mn.y:Math.min(tp.y-3,sp?sp.y:tp.y,cur.y);
+    var y1=mx?mx.y:Math.max(tp.y+2,sp?sp.y:tp.y,cur.y);
+    if(cur.y<y0)y0=cur.y;if(cur.y>y1)y1=cur.y;
+    var html='',y;
+    for(y=y0;y<=y1;y++)html+='<option value="'+y+'">'+y+'</option>';
+    selY.innerHTML=html;selY.value=cur.y;selM.value=cur.m;
+    /* أزرار الشهر السابق/التالي */
+    var curKey=cur.y*12+cur.m;
+    btnPrev.disabled=!!(mn&&curKey<=mn.y*12+mn.m);
+    btnNext.disabled=!!(mx&&curKey>=mx.y*12+mx.m);
+    btnToday.disabled=!inRange(t);
+    /* الجدول */
+    var first=new Date(cur.y,cur.m,1).getDay();       /* 0=أحد */
+    var offset=(first+1)%7;                            /* السبت = 0 */
+    var dim=new Date(cur.y,cur.m+1,0).getDate();
+    var h='<thead><tr>',i;
+    for(i=0;i<7;i++)h+='<th>'+WDAYS[i]+'</th>';
+    h+='</tr></thead><tbody>';
+    var day=1-offset,r,c,cell,v,cls;
+    for(r=0;r<6;r++){
+      if(day>dim)break;
+      h+='<tr>';
+      for(c=0;c<7;c++,day++){
+        if(day<1||day>dim){h+='<td></td>';continue;}
+        v=iso(cur.y,cur.m,day);cls='dcal-d'+(v===t?' today':'')+(v===sel?' sel':'');
+        h+='<td><button type="button" class="'+cls+'" data-iso="'+v+'"'+(inRange(v)?'':' disabled')+'>'+day+'</button></td>';
+      }
+      h+='</tr>';
+    }
+    tbl.innerHTML=h+'</tbody>';
+  }
+
+  function open(inp){
+    if(!ov)build();
+    target=inp;
+    minV=inp.getAttribute('min')||'';maxV=inp.getAttribute('max')||'';
+    var p=parseIso(getVal(inp))||parseIso(todayIso());
+    var key=p.y*12+p.m,mn=parseIso(minV),mx=parseIso(maxV);
+    if(mn&&key<mn.y*12+mn.m){p={y:mn.y,m:mn.m};}
+    if(mx&&key>mx.y*12+mx.m){p={y:mx.y,m:mx.m};}
+    cur={y:p.y,m:p.m};
+    render();
+    openedAt=new Date().getTime();
+    ov.className='dcal-ov open';
+  }
+  function close(){if(ov)ov.className='dcal-ov';target=null;}
+  function commit(v){
+    var inp=target;if(!inp)return;
+    close();
+    if(getVal(inp)===v)return;
+    desc.set.call(inp,v);
+    fire(inp,'input');fire(inp,'change');
+  }
+
+  /* ── تحويل كل حقل type=date لحقل معروض + كاليندر ── */
   function enhance(inp){
     if(inp._dsel||!inp.parentNode)return;
     inp._dsel=true;
     var wrap=document.createElement('div');wrap.className='dpick';
     var show=document.createElement('div');show.className='dpick-show';
+    show.setAttribute('role','button');show.setAttribute('tabindex','0');
     var txt=document.createElement('span');
     var ico=document.createElement('i');ico.className='fas fa-calendar-alt';
     show.appendChild(txt);show.appendChild(ico);
@@ -4596,32 +4757,41 @@ function isDateAllowed(dateStr){
     wrap.appendChild(show);
     wrap.appendChild(inp);
     function refresh(){
-      var f=fmt(desc.get.call(inp));
+      var f=fmt(getVal(inp));
       txt.textContent=f||'اختر التاريخ';
-      show.classList.toggle('empty',!f);
+      if(f)show.className='dpick-show';else show.className='dpick-show empty';
     }
     inp.addEventListener('change',refresh);
     inp.addEventListener('input',refresh);
-    Object.defineProperty(inp,'value',{
-      configurable:true,
-      get:function(){return desc.get.call(inp);},
-      set:function(v){desc.set.call(inp,v);refresh();}
+    try{
+      Object.defineProperty(inp,'value',{
+        configurable:true,
+        get:function(){return desc.get.call(inp);},
+        set:function(v){desc.set.call(inp,v);refresh();}
+      });
+    }catch(e){}
+    show.addEventListener('click',function(){open(inp);});
+    show.addEventListener('keydown',function(e){
+      if(e.key==='Enter'||e.key===' '||e.keyCode===13||e.keyCode===32){e.preventDefault();open(inp);}
     });
     refresh();
   }
   function fix(root){
     if(!root||!root.querySelectorAll)return;
-    root.querySelectorAll('input[type=date]').forEach(enhance);
-    root.querySelectorAll('input[type=time]').forEach(function(i){i.setAttribute('lang','en-GB');});
+    var a=root.querySelectorAll('input[type=date]'),i;
+    for(i=0;i<a.length;i++)enhance(a[i]);
+    a=root.querySelectorAll('input[type=time]');
+    for(i=0;i<a.length;i++)a[i].setAttribute('lang','en-GB');
   }
   fix(document);
   new MutationObserver(function(ms){
     ms.forEach(function(mu){
-      mu.addedNodes.forEach(function(n){
-        if(n.nodeType!==1)return;
+      for(var k=0;k<mu.addedNodes.length;k++){
+        var n=mu.addedNodes[k];
+        if(n.nodeType!==1)continue;
         if(n.matches&&n.matches('input[type=date]'))enhance(n);
         fix(n);
-      });
+      }
     });
   }).observe(document.body,{childList:true,subtree:true});
 })();
